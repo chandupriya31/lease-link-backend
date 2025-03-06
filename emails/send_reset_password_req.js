@@ -1,4 +1,4 @@
-import transporter from "../services/nodemailer";
+import transporter from "../services/nodemailer.js";
 
 async function sendResetPasswordRequest(email) {
     try {

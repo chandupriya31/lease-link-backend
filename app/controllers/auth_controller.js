@@ -1,4 +1,4 @@
-import { User } from "../models/user.models.js";
+import { User } from "../models/user.model.js";
 import sendOtpForValidation from '../../emails/send_otp_for_validation.js';
 import sendUserCredential from '../../emails/send_user_cred.js';
 import sendResetPasswordRequest from '../../emails/send_reset_password_req.js';
