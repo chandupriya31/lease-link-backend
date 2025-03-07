@@ -7,14 +7,11 @@ export const getAllCategories = async (req, res) => {
     const categories = await Category.find({ isActive: true });
     // console.log("categories", categories);
     res.status(200).json({
-      status: "success",
       categories,
     });
   } catch (err) {
     res.status(500).json({
-      status: "error",
-      message: "Something went wrong... please try again later",
-      error: err.message,
+      message: "Something went wrong... please try again later"
     });
   }
 };
@@ -28,7 +25,6 @@ export const getCategoryById = async (req, res) => {
 
     if (!category) {
       return res.status(404).json({
-        success: false,
         message: "Category not found",
       });
     }
@@ -38,10 +34,7 @@ export const getCategoryById = async (req, res) => {
       data: category,
     });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong... please try again later",
-      error: err.message,
+      message: "Something went wrong... please try again later"
     });
   }
 };
@@ -55,7 +48,6 @@ export const createCategory = async (req, res) => {
     // Validate required fields
     if (!name) {
       return res.status(400).json({
-        success: false,
         message: "Please provide category name",
       });
     }
@@ -64,7 +56,6 @@ export const createCategory = async (req, res) => {
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
       return res.status(400).json({
-        success: false,
         message: "Category with this name already exists",
       });
     }
@@ -78,15 +69,12 @@ export const createCategory = async (req, res) => {
     });
 
     res.status(201).json({
-      status: "success",
       message: "Category created successfully",
-      data: category,
+      category
     });
   } catch (err) {
     res.status(500).json({
-      success: false,
-      message: "Something went wrong... please try again later",
-      error: err.message,
+      message: "Something went wrong... please try again later"
     });
   }
 };
@@ -104,21 +92,17 @@ export const updateCategory = async (req, res) => {
 
     if (!category) {
       return res.status(404).json({
-        success: false,
-        message: "Category not found",
+        message: "Category not found"
       });
     }
 
     res.status(200).json({
-      success: true,
       message: "Category updated successfully",
-      data: category,
+      category
     });
   } catch (err) {
     res.status(500).json({
-      success: false,
-      message: "Something went wrong... please try again later",
-      error: err.message,
+      message: "Something went wrong... please try again later"
     });
   }
 };
