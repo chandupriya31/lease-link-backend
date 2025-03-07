@@ -88,13 +88,12 @@ export const otpVerification = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
     
-    // Generate a random password
+    // Generate a random password - DO NOT hash it here, the pre-save hook will hash it
     const password = generateRandomPassword();
-    const hashedPassword = await bcrypt.hash(password, 10);
     
     // Update user - set as verified and save password
     user.isValid = true;
-    user.password = hashedPassword;
+    user.password = password; // This will be hashed by the pre-save hook
     user.otp = undefined;
     await user.save();
     
@@ -143,23 +142,25 @@ export const loginUser = async (req, res) => {
       });
     }
     
-    // Check if password is correct
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Add debug logging
+    console.log("Login attempt for:", email);
+    console.log("Provided password:", password);
+    console.log("Stored password hash:", user.password);
+    
+    // Check if password is correct - use the method from the user model
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    console.log("isPasswordValid", isPasswordValid);
     if (!isPasswordValid) {
       return res.status(401).json({ success: false, message: "Invalid password" });
     }
     
-    // Generate tokens
-    const accessToken = jwt.sign(
-      { id: user._id },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-    );
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-    );
+    // Generate tokens using user methods
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    
+    // Update user with refresh token
+    user.refreshToken = refreshToken;
+    await user.save();
     
     // Set cookies
     res.cookie("accessToken", accessToken, {
