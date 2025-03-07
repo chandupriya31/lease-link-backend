@@ -6,33 +6,24 @@ export const getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true });
     // console.log("categories", categories);
-    res.status(200).json({
-      categories,
-    });
+    res.status(200).json({categories});
   } catch (err) {
-    res.status(500).json({
-      message: "Something went wrong... please try again later"
-    });
+    res.status(500).json({ message: "Something went wrong... please try again later" });
   }
 };
 
 // Get a single category by ID
 export const getCategoryById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params.id;
 
     const category = await Category.findById(id);
 
     if (!category) {
-      return res.status(404).json({
-        message: "Category not found",
-      });
+      return res.status(404).json({ message: "Category not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: category,
-    });
+    res.status(200).json(category);
   } catch (err) {
       message: "Something went wrong... please try again later"
     });
@@ -55,9 +46,7 @@ export const createCategory = async (req, res) => {
     // Check if category already exists
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
-      return res.status(400).json({
-        message: "Category with this name already exists",
-      });
+      return res.status(400).json({ message: "Category with this name already exists" });
     }
 
     // Create new category
@@ -82,13 +71,10 @@ export const createCategory = async (req, res) => {
 // Update a category
 export const updateCategory = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params.id;
     const updates = req.body;
 
-    const category = await Category.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const category = await Category.findByIdAndUpdate(id, updates, { new: true });
 
     if (!category) {
       return res.status(404).json({
