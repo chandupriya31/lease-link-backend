@@ -6,7 +6,7 @@ export const getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true });
     // console.log("categories", categories);
-    res.status(200).json({categories});
+    res.status(200).json({ categories });
   } catch (err) {
     res.status(500).json({ message: "Something went wrong... please try again later" });
   }
@@ -25,15 +25,14 @@ export const getCategoryById = async (req, res) => {
 
     res.status(200).json(category);
   } catch (err) {
-      message: "Something went wrong... please try again later"
-    });
+    res.status(500).json({ message: "Something went wrong... please try again later" });
   }
 };
 
 // Create a new category
 export const createCategory = async (req, res) => {
-    try {
-      console.log("body-cat", req.body)
+  try {
+    console.log("body-cat", req.body)
     const { name, description, icon } = req.body;
 
     // Validate required fields
