@@ -17,7 +17,7 @@ export const authenticateUser = (req, res, next) => {
   }
 };
 
-export const Roles = (req, res, next) => {
+export const isAuthorizedUser = (req, res, next) => {
   const user = req.user;
   if (user.role !== "admin") {
     return res
