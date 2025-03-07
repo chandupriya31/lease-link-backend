@@ -13,6 +13,6 @@ app.use(cors());
 
 app.use("/api/v1/auth", auth_routes);
 
-app.use("/api/v1/categories", category_routes);
+app.use("/api/v1/category", category_routes);
 
 export default app;
