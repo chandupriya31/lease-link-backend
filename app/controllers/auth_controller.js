@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import generateOtp from '../helpers/generate_otp.js'
 import sendOtpForValidation from '../../emails/send_otp_for_validation.js';
 import sendUserCredential from '../../emails/send_user_cred.js';
 import sendResetPasswordRequest from '../../emails/send_reset_password_req.js';
@@ -6,6 +7,7 @@ import sendResetPasswordConfirmation from '../../emails/send_reset_password_conf
 import generateRandomPassword from '../helpers/generate_random_otp.js';
 
 export const registerUser = async (req, res) => {
+    console.log(req.body)
     try {
         const { email, role, phone_number } = req.body;
         if (!email) {
@@ -28,8 +30,9 @@ export const registerUser = async (req, res) => {
         if (!response.success) {
             return res.status(400).json({ message: 'Error sending OTP... please retry to continue' });
         }
-        res.status(201).json(new { id: user._id, email, message: "OTP sent for verification" });
+        res.status(201).json({ id: user._id, email, message: "OTP sent for verification" });
     } catch (err) {
+        console.log(err, 'error')
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 };
