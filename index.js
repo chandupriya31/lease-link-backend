@@ -4,6 +4,10 @@ import connectDB from "./config/db.js";
 
 dotenv.config({ path: "./.env" });
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the server");
+});
+
 connectDB()
   .then(() => {
     app.listen(process.env.PORT, () => {
