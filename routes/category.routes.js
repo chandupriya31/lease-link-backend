@@ -9,18 +9,18 @@ import {
 } from "../app/controllers/category.controller.js";
 import {
   authenticateUser,
-  Roles,
+  isAuthorizedUser,
 } from "../app/middlewares/auth_middlewares.js";
 
 const router = express.Router();
 
 // Public routes
-router.get("/", getAllCategories);
+router.get("/categories", getAllCategories);
 router.get("/:id", getCategoryById);
 
 // Protected routes - require authentication (admin only)
-router.post("/", createCategory);
-router.put("/:id", authenticateUser, Roles, updateCategory);
+router.post("/create", createCategory);
+router.put("/:id", authenticateUser, isAuthorizedUser, updateCategory);
 
 
 // Admin only routes
