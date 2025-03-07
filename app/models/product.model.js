@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 const productSchema = new Schema({
     name: String,
     description: String,
-    user_id: {
+    user: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
