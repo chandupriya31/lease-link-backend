@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import auth_routes from "./routes/auth_routes.js";
 import category_routes from "./routes/category.routes.js";
 import user_routes from "./routes/user_routes.js";
+import insurance_routes from "./routes/insurance.routes.js";
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.use(cors({
 app.use("/api/v1/auth", auth_routes);
 app.use("/api/v1/categories", category_routes);
 app.use("/api/v1/user", user_routes);
+app.use("/api/v1/insurance", insurance_routes);
 
 export default app;
