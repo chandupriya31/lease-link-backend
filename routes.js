@@ -12,7 +12,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-// Configure CORS properly
 app.use(cors({
   origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "http://localhost:5173",
   credentials: true,
@@ -22,7 +21,7 @@ app.use(cors({
 
 // API routes
 app.use("/api/v1/auth", auth_routes);
-app.use("/api/v1/category", category_routes);
+app.use("/api/v1/categories", category_routes);
 app.use("/api/v1/user", user_routes);
 
 export default app;

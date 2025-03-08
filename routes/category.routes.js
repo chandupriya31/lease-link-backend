@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 // Public routes
-router.get("/categories", getAllCategories);
+router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
 
 // Protected routes - require authentication (admin only)

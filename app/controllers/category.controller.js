@@ -2,6 +2,7 @@ import { Category } from "../models/category.model.js";
 
 // Get all categories
 export const getAllCategories = async (req, res) => {
+  console.log("call the categories");
   try {
     const categories = await Category.find({ isActive: true });
     // console.log("categories", categories);
