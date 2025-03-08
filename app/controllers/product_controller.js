@@ -9,7 +9,6 @@ export const addProduct = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     const { name, description, category, is_best_seller, price, total_quantity } = req.body
-    console.log(req.files);
     try {
         const filesData = req.files
         let images = []
@@ -31,7 +30,6 @@ export const addProduct = async (req, res) => {
         }, { new: true, upsert: true })
         res.json({ product, message: "Product added succesfully" })
     } catch (err) {
-        console.log('error', err);
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 }
