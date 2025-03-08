@@ -71,7 +71,7 @@ export const registerUser = async (req, res) => {
 export const otpVerification = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    
+    console.log("OTP Verification:", { email, otp });
     // Validate required fields
     if (!email || !otp) {
       return res.status(400).json({ success: false, message: "Email and OTP are required" });
@@ -84,7 +84,7 @@ export const otpVerification = async (req, res) => {
     }
     
     // Check if OTP matches
-    if (user.otp !== parseInt(otp)) {
+    if (user.otp !=otp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
     
