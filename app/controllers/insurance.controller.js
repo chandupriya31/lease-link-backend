@@ -4,7 +4,7 @@ import { Insurance } from "../models/insurance.model.js";
 export const getAllInsurancePlans = async (req, res) => {
   try {
     const insurancePlans = await Insurance.find({ is_active: true });
-    
+
     return res.status(200).json({
       success: true,
       insurancePlans,
@@ -23,7 +23,7 @@ export const getAllInsurancePlans = async (req, res) => {
 export const getInsurancePlanById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Find the insurance plan and make sure it's active
     const insurancePlan = await Insurance.findOne({ _id: id, is_active: true });
 
@@ -62,7 +62,7 @@ export const createInsurancePlan = async (req, res) => {
 
     // Check if a plan with the same name already exists
     const existingPlan = await Insurance.findOne({ plan_name });
-    
+
     if (existingPlan) {
       // If it exists but is inactive, reactivate it instead of creating new
       if (!existingPlan.is_active) {
@@ -81,12 +81,10 @@ export const createInsurancePlan = async (req, res) => {
       }
 
       // If it's already active, return error
-      return res
-        .status(400)
-        .json({ 
-          success: false,
-          message: "Insurance plan with this name already exists" 
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Insurance plan with this name already exists",
+      });
     }
 
     // Create new insurance plan
@@ -117,10 +115,10 @@ export const updateInsurancePlan = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-
+    console.log("updates", updates);
     const insurancePlan = await Insurance.findByIdAndUpdate(id, updates, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (!insurancePlan) {
@@ -148,7 +146,7 @@ export const updateInsurancePlan = async (req, res) => {
 export const deleteInsurancePlan = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Find the insurance plan by ID and set is_active to false (soft delete)
     const insurancePlan = await Insurance.findByIdAndUpdate(
       id,
