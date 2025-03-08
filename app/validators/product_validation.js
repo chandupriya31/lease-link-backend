@@ -15,9 +15,15 @@ export const productSchema = {
         notEmpty: {
             errorMessage: "Please select the category"
         }
-    }, images: {
-        notEmpty: {
-            errorMessage: "Please add images of your product"
+    },
+    images: {
+        custom: {
+            options: (value, { req }) => {
+                if (!req.files || req.files.length === 0) {
+                    throw new Error("Please upload at least one image");
+                }
+                return true;
+            }
         }
     }
 }

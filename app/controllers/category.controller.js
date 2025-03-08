@@ -53,7 +53,6 @@ export const getCategoryById = async (req, res) => {
 // Create a new category
 export const createCategory = async (req, res) => {
   try {
-    console.log("body-cat", req.body);
     const { name, description, icon } = req.body;
 
     // Validate required fields

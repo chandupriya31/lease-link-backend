@@ -8,11 +8,7 @@ import generateRandomPassword from "../helpers/generate_random_otp.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Fixing the bcrypt import
 
-/**
- * @desc    Register a new user
- * @route   POST /api/v1/auth/register
- * @access  Public
- */
+
 export const registerUser = async (req, res) => {
   try {
     const { email, role, phone_number } = req.body;
@@ -42,10 +38,14 @@ export const registerUser = async (req, res) => {
       phone_number
     });
 
-    // Send OTP email
-    const response = await sendOtpForValidation(email, otp);
-    if (!response.success) {
-      return res.status(400).json({ success: false, message: "Error sending OTP... please retry to continue" });
+        const response = await sendOtpForValidation(email, otp);
+        if (!response.success) {
+            return res.status(400).json({ message: 'Error sending OTP... please retry to continue' });
+        }
+        res.status(201).json({ id: user._id, email, message: "OTP sent for verification" });
+    } catch (err) {
+        console.log(err, 'error')
+        return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
     
     // Return success response
@@ -330,11 +330,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/**
- * @desc    Logout user
- * @route   POST /api/v1/auth/logout
- * @access  Private (requires authentication)
- */
+
 export const logoutUser = async (req, res) => {
   try {
     // Clear cookies
@@ -349,11 +345,6 @@ export const logoutUser = async (req, res) => {
   }
 };
 
-/**
- * @desc    Refresh access token
- * @route   POST /api/v1/auth/refresh-token
- * @access  Public (requires refresh token)
- */
 export const refreshToken = async (req, res) => {
   try {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
@@ -418,6 +409,7 @@ export const refreshToken = async (req, res) => {
       });
     } catch (error) {
       return res.status(401).json({ success: false, message: "Invalid refresh token" });
+
     }
   } catch (err) {
     console.error("Refresh token error:", err);
