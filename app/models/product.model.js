@@ -16,8 +16,8 @@ const productSchema = new Schema({
         type: Boolean,
         default: false
     },
-    images: [String],
-    total: Number,
+    images: [{ url: String, key: String }],
+    total_quantity: Number,
     available: Number,
 }, { timestamps: true });
 

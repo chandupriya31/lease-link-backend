@@ -9,10 +9,10 @@ router.post("/login", loginUser);
 
 router.post("/otp", otpVerification);
 
-router.post("/is-email-exist", authenticateUser, isEmailExist);
+router.post("/is-email-exist", isEmailExist);
 
-router.post("/re-send-otp", authenticateUser, resendOtp);
+router.post("/re-send-otp", resendOtp);
 
-router.post("/forgot-password", authenticateUser, forgotPassword);
+router.post("/forgot-password", forgotPassword);
 
 export default router;

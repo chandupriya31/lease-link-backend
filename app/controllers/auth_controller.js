@@ -7,7 +7,6 @@ import sendResetPasswordConfirmation from '../../emails/send_reset_password_conf
 import generateRandomPassword from '../helpers/generate_random_otp.js';
 
 export const registerUser = async (req, res) => {
-    console.log(req.body)
     try {
         const { email, role, phone_number } = req.body;
         if (!email) {
@@ -168,6 +167,7 @@ export const forgotPassword = async (req, res) => {
         }
         res.status(200).json({ message: "Your password changed  successfully" });
     } catch (err) {
+        console.log('error', err)
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 };

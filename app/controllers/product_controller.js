@@ -1,13 +1,22 @@
 import { Product } from "../models/product.model.js";
-import cloudinary from "../../config/cloudinary.js";
+import fs from "fs";
+import { validationResult } from "express-validator";
+import { uploadToS3 } from "../middlewares/file_upload.js";
 
 export const addProduct = async (req, res) => {
-    const { name, description, category, is_best_seller, price, images, total } = req.body
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    const { name, description, category, is_best_seller, price, total_quantity } = req.body
+    console.log(req.files);
     try {
-        const result = await cloudinary.uploader.upload(req.file.path, { resource_type: "image" });
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error("Error deleting file:", err);
-        });
+        const filesData = req.files
+        let images = []
+        for (const file of filesData) {
+            const uploadResult = await uploadToS3(file)
+            images.push(uploadResult)
+        }
         const product = await Product.findOneAndUpdate({ name }, {
             $set: {
                 name,
@@ -15,13 +24,14 @@ export const addProduct = async (req, res) => {
                 category,
                 is_best_seller,
                 price,
-                total,
+                total_quantity,
                 user: req.user._id,
+                images
             },
-            $push: { images: result.secure_url }
         }, { new: true, upsert: true })
         res.json({ product, message: "Product added succesfully" })
     } catch (err) {
+        console.log('error', err);
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 }
