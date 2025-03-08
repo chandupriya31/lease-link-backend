@@ -1,18 +1,29 @@
 import express from "express";
-import { forgotPassword, isEmailExist, loginUser, otpVerification, registerUser, resendOtp } from "../app/controllers/auth_controller.js";
+import {
+  forgotPasswordisEmailExist,
+  loginUser,
+  otpVerification,
+  registerUser,
+  resendOtp,
+  forgotPassword,
+  logoutUser,
+  refreshToken
+} from "../app/controllers/auth_controller.js";
 import { authenticateUser } from "../app/middlewares/auth_middlewares.js";
 
 const router = express.Router();
 
-router.post('/register', registerUser);
+// Public routes
+router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/otp-verification", otpVerification);
+router.post("/forgot-password", forgotPasswordisEmailExist);
+router.post("/resend-otp", resendOtp);
+router.post("/refresh-token", refreshToken);
 
-router.post("/otp", otpVerification);
-
-router.post("/is-email-exist", isEmailExist);
-
-router.post("/re-send-otp", resendOtp);
-
-router.post("/forgot-password", forgotPassword);
+// Protected routes (require authentication)
+router.post("/reset-password", authenticateUser, forgotPassword);
+router.post("/logout", authenticateUser, logoutUser);
 
 export default router;
+

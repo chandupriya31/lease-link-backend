@@ -1,11 +1,11 @@
 import express from "express";
 import {
-  getAllCategories,
-  getCategoryById,
-  createCategory,
-  updateCategory,
-  deleteCategory
-} from "../app/controllers/category.controller.js";
+  getAllInsurancePlans,
+  getInsurancePlanById,
+  createInsurancePlan,
+  updateInsurancePlan,
+  deleteInsurancePlan
+} from "../app/controllers/insurance.controller.js";
 import {
   authenticateUser,
   isAuthorizedUser,
@@ -14,17 +14,22 @@ import {
 const router = express.Router();
 
 // Public routes
-router.get("/", getAllCategories);
-router.get("/:id", getCategoryById);
+router.get("/", getAllInsurancePlans);
+router.get("/:id", getInsurancePlanById);
 
 // Protected routes - require authentication (admin only)
-router.post("/", createCategory);
+router.post(
+  "/",
+  // authenticateUser,
+  // isAuthorizedUser,
+  createInsurancePlan
+);
+
 router.put(
   "/:id",
   // authenticateUser,
   // isAuthorizedUser,
-
-  updateCategory
+  updateInsurancePlan
 );
 
 // Delete route
@@ -32,15 +37,7 @@ router.delete(
   "/:id",
   // authenticateUser,
   // isAuthorizedUser,
-  deleteCategory
+  deleteInsurancePlan
 );
-
-// Admin only routes
-// router.delete(
-//   "/:id/permanent",
-//   authenticateUser,
-//   Roles,
-//   permanentlyDeleteCategory
-// );
 
 export default router;

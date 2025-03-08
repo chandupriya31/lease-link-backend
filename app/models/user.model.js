@@ -36,17 +36,25 @@ const userSchema = new Schema(
         otp: {
             type: Number,
             default: null,
-            expiredAt: Date.now() + 10 * 60,
+        },
+        otpExpiry: {
+            type: Date,
+            default: function() {
+                return new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+            }
         },
         isValid: {
             type: Boolean,
-
             default: false,
         },
         status: {
             type: String,
             enum: ['active', 'blocked'],
             default: 'active'
+        },
+        resetToken: {
+            type: String,
+            default: null
         }
     }, { timestamps: true });
 
@@ -78,10 +86,11 @@ userSchema.methods.generateAccessToken = function () {
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m",
         }
     );
 };
+
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
@@ -89,7 +98,7 @@ userSchema.methods.generateRefreshToken = function () {
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
         }
     );
 };
