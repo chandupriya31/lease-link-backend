@@ -18,7 +18,7 @@ router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
 
 // Protected routes - require authentication (admin only)
-router.post("/create", createCategory);
+router.post("/", createCategory);
 router.put(
   "/:id",
   // authenticateUser,

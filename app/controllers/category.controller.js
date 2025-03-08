@@ -2,10 +2,10 @@ import { Category } from "../models/category.model.js";
 
 // Get all categories
 export const getAllCategories = async (req, res) => {
-  console.log("Fetching all active categories");
+  // console.log("Fetching all active categories");
   try {
     const categories = await Category.find({ isActive: true });
-    console.log(`Found ${categories.length} active categories`);
+    // console.log(`Found ${categories.length} active categories`);
 
     return res.status(200).json({
       success: true,
@@ -65,7 +65,26 @@ export const createCategory = async (req, res) => {
 
     // Check if category already exists
     const existingCategory = await Category.findOne({ name });
+    console.log("existingCategory", existingCategory);
+
     if (existingCategory) {
+      // If it exists but is inactive, reactivate it instead of creating new
+      if (!existingCategory.isActive) {
+        existingCategory.isActive = true;
+        existingCategory.description =
+          description || existingCategory.description;
+        existingCategory.icon = icon || existingCategory.icon;
+
+        const updatedCategory = await existingCategory.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "Category reactivated successfully",
+          category: updatedCategory,
+        });
+      }
+
+      // If it's already active, return error
       return res
         .status(400)
         .json({ message: "Category with this name already exists" });
@@ -84,6 +103,7 @@ export const createCategory = async (req, res) => {
       category,
     });
   } catch (err) {
+    console.error("Create category error:", err);
     res.status(500).json({
       message: "Something went wrong... please try again later",
     });
