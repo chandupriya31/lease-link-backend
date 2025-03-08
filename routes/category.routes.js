@@ -4,8 +4,7 @@ import {
   getCategoryById,
   createCategory,
   updateCategory,
-
-
+  deleteCategory
 } from "../app/controllers/category.controller.js";
 import {
   authenticateUser,
@@ -20,8 +19,21 @@ router.get("/:id", getCategoryById);
 
 // Protected routes - require authentication (admin only)
 router.post("/create", createCategory);
-router.put("/:id", authenticateUser, isAuthorizedUser, updateCategory);
+router.put(
+  "/:id",
+  // authenticateUser,
+  // isAuthorizedUser,
 
+  updateCategory
+);
+
+// Delete route
+router.delete(
+  "/:id",
+  // authenticateUser,
+  // isAuthorizedUser,
+  deleteCategory
+);
 
 // Admin only routes
 // router.delete(

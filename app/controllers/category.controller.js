@@ -2,34 +2,51 @@ import { Category } from "../models/category.model.js";
 
 // Get all categories
 export const getAllCategories = async (req, res) => {
-  console.log("call the categories");
+  console.log("Fetching all active categories");
   try {
     const categories = await Category.find({ isActive: true });
-    // console.log("categories", categories);
-    res.status(200).json({ categories });
+    console.log(`Found ${categories.length} active categories`);
+
+    return res.status(200).json({
+      success: true,
+      categories,
+      count: categories.length,
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong... please try again later" });
+    console.error("Get all categories error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong... please try again later",
+    });
   }
 };
 
 // Get a single category by ID
 export const getCategoryById = async (req, res) => {
   try {
-    const { id } = req.params.id;
+    const { id } = req.params;
+    console.log("Getting category with ID:", id);
 
-    const category = await Category.findById(id);
+    // Find the category and make sure it's active
+    const category = await Category.findOne({ _id: id, isActive: true });
 
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
     }
 
-    res.status(200).json(category);
+    res.status(200).json({
+      success: true,
+      category,
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong... please try again later" });
+    console.error("Get category by ID error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong... please try again later",
+    });
   }
 };
 
@@ -76,12 +93,14 @@ export const createCategory = async (req, res) => {
 // Update a category
 export const updateCategory = async (req, res) => {
   try {
-    const { id } = req.params.id;
+    const { id } = req.params;
+    console.log("id in categories", id);
     const updates = req.body;
-
+    console.log("updates", updates);
     const category = await Category.findByIdAndUpdate(id, updates, {
       new: true,
     });
+    console.log("category in updateCategory", category);
 
     if (!category) {
       return res.status(404).json({
@@ -100,83 +119,35 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete a category (soft delete by setting isActive to false)
-// export const deleteCategory = async (req, res) => {
-//   try {
-//     const { id } = req.params;
+// Delete a category (soft delete)
+export const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Deleting category with ID:", id);
 
-//     // Check if there are products using this category
-//     const productsWithCategory = await Product.countDocuments({
-//       category: id,
-//       isActive: true,
-//     });
+    // Find the category by ID and set isActive to false (soft delete)
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { isActive: false },
+      { new: true }
+    );
 
-//     if (productsWithCategory > 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: `Cannot delete this category because it is used by ${productsWithCategory} product(s). Please reassign or delete these products first.`,
-//       });
-//     }
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
 
-//     const category = await Category.findByIdAndUpdate(
-//       id,
-//       { isActive: false },
-//       { new: true }
-//     );
-
-//     if (!category) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Category not found",
-//       });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Category deleted successfully",
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Something went wrong... please try again later",
-//       error: err.message,
-//     });
-//   }
-// };
-
-// Permanently delete a category (for admin use only)
-// export const permanentlyDeleteCategory = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     // Check if there are products using this category
-//     const productsWithCategory = await Product.countDocuments({ category: id });
-
-//     if (productsWithCategory > 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: `Cannot delete this category because it is used by ${productsWithCategory} product(s). Please reassign or delete these products first.`,
-//       });
-//     }
-
-//     const category = await Category.findByIdAndDelete(id);
-
-//     if (!category) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Category not found",
-//       });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Category permanently deleted",
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Something went wrong... please try again later",
-//       error: err.message,
-//     });
-//   }
-// };
+    return res.status(200).json({
+      success: true,
+      message: "Category deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete category error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong... please try again later",
+    });
+  }
+};
