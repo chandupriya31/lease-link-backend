@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-const addtocartSchema = new Schema({
+const cartSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User'
@@ -17,3 +17,7 @@ const addtocartSchema = new Schema({
     start_time: Date,
     end_time: Date
 }, { timestamps: true });
+
+const Cart = model('Cart', cartSchema);
+
+export default Cart;

@@ -19,6 +19,14 @@ const productSchema = new Schema({
     images: [{ url: String, key: String }],
     total_quantity: Number,
     available: Number,
+    insurance: {
+        type: Boolean,
+        default: false
+    },
+    selected_insurance: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Insurance'
+    }]
 }, { timestamps: true });
 
 

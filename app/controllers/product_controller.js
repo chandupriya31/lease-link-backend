@@ -8,7 +8,7 @@ export const addProduct = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { name, description, category, is_best_seller, price, total_quantity } = req.body
+    const { name, description, category, is_best_seller, price, total_quantity, insurance, selected_insurance } = req.body
     try {
         const existingProduct = await Product.findOne({ name });
         if (existingProduct) {
@@ -31,7 +31,9 @@ export const addProduct = async (req, res) => {
                 price,
                 total_quantity,
                 user: req.user._id,
-                images
+                images,
+                insurance,
+                selected_insurance
             },
         }, { new: true, upsert: true })
         res.json({ product, message: "Product added succesfully" })
