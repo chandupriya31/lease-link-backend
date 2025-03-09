@@ -10,10 +10,10 @@ export const authenticateUser = async (req, res, next) => {
     // Get token from cookies or headers
     let token = "";
     const authHeader = req.headers.authorization || req.headers.Authorization;
-    
     if (req.cookies && req.cookies.accessToken) {
       // Get from cookie
       token = req.cookies.accessToken;
+      
     } else if (authHeader && authHeader.startsWith("Bearer ")) {
       // Get from Authorization header
       token = authHeader.split(" ")[1];
@@ -21,6 +21,7 @@ export const authenticateUser = async (req, res, next) => {
       // Get from custom header
       token = req.headers.accesstoken;
     }
+
 
     if (!token) {
       return res.status(401).json({ 
