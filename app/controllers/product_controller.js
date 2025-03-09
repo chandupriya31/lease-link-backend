@@ -1,7 +1,7 @@
 import { Product } from "../models/product.model.js";
 import fs from "fs";
 import { validationResult } from "express-validator";
-import { uploadToS3 } from "../middlewares/file_upload.js";
+import { deleteFromS3, uploadToS3 } from "../middlewares/file_upload.js";
 
 export const addProduct = async (req, res) => {
     const errors = validationResult(req);
@@ -10,6 +10,12 @@ export const addProduct = async (req, res) => {
     }
     const { name, description, category, is_best_seller, price, total_quantity } = req.body
     try {
+        const existingProduct = await Product.findOne({ name });
+        if (existingProduct) {
+            for (const image of existingProduct.images) {
+                await deleteFromS3(image.key);
+            }
+        }
         const filesData = req.files
         let images = []
         for (const file of filesData) {

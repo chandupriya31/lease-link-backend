@@ -21,14 +21,22 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "accesstoken"]
 }));
 
-// API routes
+// auth routes
 app.use("/api/v1/auth", auth_routes);
-app.use("/api/v1/categories", category_routes);
+
+// user routes
 app.use("/api/v1/user", user_routes);
+
+// category routes
+app.use("/api/v1/categories", category_routes);
+
+// insurance routes
 app.use("/api/v1/insurance", insurance_routes);
 
+// product routes
 app.use("/api/v1/product", product_routes);
 
+// query routes
 app.use("/api/v1/contact-us", query_routes);
 
 export default app;
