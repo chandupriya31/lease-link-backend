@@ -22,3 +22,12 @@ export const createCart = async (req, res) => {
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 }
+
+export const getCart = async (req, res) => {
+    try {
+        const cart = await Cart.find({ user: req.user._id }).populate('product');
+        return res.json(cart);
+    } catch (err) {
+        return res.status(500).json({ message: 'Something went wrong... please try again later' });
+    }
+}
