@@ -6,7 +6,9 @@ import category_routes from "./routes/category.routes.js";
 import user_routes from "./routes/user_routes.js";
 import insurance_routes from "./routes/insurance.routes.js";
 import product_routes from './routes/product_routes.js';
-import query_routes from "./routes/query_routes.js"
+import query_routes from "./routes/query_routes.js";
+import addressRoute from "./routes/address.route.js";
+import BillingRoute from "./routes/billing.route.js";
 const app = express();
 
 app.use(express.json());
@@ -21,7 +23,11 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "accesstoken"]
 }));
 
+
+app.use("/api/v1/address",addressRoute);
+app.use("/api/v1/billingroute",BillingRoute);
 // auth routes
+
 app.use("/api/v1/auth", auth_routes);
 
 // user routes
