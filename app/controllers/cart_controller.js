@@ -3,7 +3,7 @@ import { Product } from "../models/product.model";
 
 export const createCart = async (req, res) => {
     try {
-        const { product, quantity, start_time, end_time } = req.body;
+        const { product, quantity, start_time, end_time, total_price } = req.body;
         const productData = await Product.findById(product);
         if (!productData) {
             return res.status(404).json({ message: "Product not found" });
@@ -12,7 +12,7 @@ export const createCart = async (req, res) => {
             product,
             quantity,
             user: req.user._id,
-            total_price: productData.price * quantity,
+            total_price,
             start_time,
             end_time
         }
