@@ -6,10 +6,8 @@ export const createBill = async (req, res) => {
 
         if (!user_id || !full_name || !address) {
             return res.status(400).json({ message: "Required fields are missing" });
-        }
-
-       
-        const newBilling = new Billing({
+        }        
+        await Billing.create({
             user: user_id,
             full_name,
             phone_number,
@@ -18,11 +16,6 @@ export const createBill = async (req, res) => {
             state,
             pincode,
         });
-
-        
-        await newBilling.save();
-
-    
         res.status(201).json({ message: "Billing record created successfully", data: newBilling });
     } catch (error) {
         console.error("Error creating billing record:", error);
@@ -34,15 +27,10 @@ export const createBill = async (req, res) => {
 export const getAllData = async (req, res) => {
     try {
         const { user_id } = req.params; 
-
         const billingData = await Billing.find({ user: user_id }).populate("user");
-
-       
         if (!billingData || billingData.length === 0) {
             return res.status(404).json({ message: "No billing records found for this user" });
         }
-
-      
         res.status(200).json({ message: "Billing records retrieved successfully", data: billingData });
     } catch (error) {
         console.error("Error fetching billing records:", error);
