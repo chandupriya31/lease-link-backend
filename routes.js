@@ -11,13 +11,11 @@ import addressRoute from "./routes/address.route.js";
 import billingRoute from "./routes/billing.route.js";
 import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
-<<<<<<< Updated upstream
-=======
 import ratingrouter from "./routes/rating.route.js";
 import cartroute from "./routes/cart.routes.js";
+import bank_routes from './routes/bank_details.routes.js'
 
 
->>>>>>> Stashed changes
 
 const app = express();
 
@@ -34,7 +32,7 @@ app.use(cors({
 }));
 
 
-app.use("/api/v1/address",addressRoute);
+app.use("/api/v1/address", addressRoute);
 app.use("/api/v1/rating", ratingrouter);
 app.use("/api/v1/cart", cartroute);
 
@@ -57,11 +55,13 @@ app.use("/api/v1/product", product_routes);
 // query routes
 app.use("/api/v1/contact-us", query_routes);
 // billing routes
-app.use("/api/v1/billingroute",billingRoute);
+app.use("/api/v1/billingroute", billingRoute);
 
 app.use("/api/v1/blogs", blog_routes);
 
 app.use("/api/v1/faqs", faqs_routes);
+
+app.use("/api/v1/bank", bank_routes);
 
 
 

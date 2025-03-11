@@ -15,29 +15,14 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllInsurancePlans);
+
 router.get("/:id", getInsurancePlanById);
 
-// Protected routes - require authentication (admin only)
-router.post(
-  "/",
-  // authenticateUser,
-  // isAuthorizedUser,
-  createInsurancePlan
-);
+router.post("/", createInsurancePlan);
 
-router.put(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-  updateInsurancePlan
-);
+router.put("/:id", updateInsurancePlan);
 
 // Delete route
-router.delete(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-  deleteInsurancePlan
-);
+router.delete("/:id", deleteInsurancePlan);
 
 export default router;
