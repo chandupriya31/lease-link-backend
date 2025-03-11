@@ -13,7 +13,8 @@ import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
 import ratingrouter from "./routes/rating.route.js";
 import cartroute from "./routes/cart.routes.js";
-import bank_routes from './routes/bank_details.routes.js'
+import bank_routes from './routes/bank_details.routes.js';
+import wallet_routes from './routes/wallet.route.js';
 
 
 
@@ -62,6 +63,10 @@ app.use("/api/v1/blogs", blog_routes);
 app.use("/api/v1/faqs", faqs_routes);
 
 app.use("/api/v1/bank", bank_routes);
+
+app.use("/api/v1/wallet",wallet_routes);
+
+
 
 
 

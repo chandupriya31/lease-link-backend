@@ -165,6 +165,7 @@ export const loginUser = async (req, res) => {
         console.error("Login error:", err);
         return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
     }
+
 };
 export const resendOtp = async (req, res) => {
     try {
