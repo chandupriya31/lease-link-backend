@@ -1,18 +1,21 @@
 import { BankDetails } from "../models/bank-details.model.js";
+import { authenticateUser } from "../middlewares/auth_middlewares.js";
 
 export const addBankDetails = async (req, res) => {
     try {
-        const { accountHolderName, accountNumber, sortCode, bankName, bankAddress } = req.body;
+        const {userId, accountHolderName, accountNumber, sortCode, bankName, bankAddress, wallet } = req.body;
 
         if (!accountHolderName || !accountNumber || !sortCode || !bankName || !bankAddress) {
             return res.status(400).json({ success: false, message: "Please add the required data" });
         }
         let bankDetails = {
+            userId,
             accountHolderName,
             accountNumber,
             sortCode,
             bankName,
-            bankAddress
+            bankAddress,
+            wallet
         };
         await BankDetails.create(bankDetails);
         res.status(201).json({ success: true, message: "Bank details created successfully" });
@@ -23,8 +26,20 @@ export const addBankDetails = async (req, res) => {
 
 export const getDetails = async (req, res) => {
     try {
-        const bankDetailsList = await BankDetails.find({});
-        res.status(200).json({ success: true, data: bankDetailsList });
+        const { userId } = req.params;
+        // Check if userId is a valid MongoDB ObjectId
+        if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ success: false, message: "Invalid user ID format" });
+        }
+
+        // Query the database
+        const bankDetails = await BankDetails.find({ userId });
+         console.log(bankDetails);
+        // Check if user exists
+        if (!bankDetails) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        res.status(200).json(bankDetails);
     } catch (err) {
         res.status(500).json({ success: false, message: 'Something went wrong... please try again later', error: err.message });
     }
@@ -37,7 +52,7 @@ export const getDetailsById = async (req, res) => {
         if (!bankDetails) {
             return res.status(404).json({ success: false, message: "Bank details not found" });
         }
-        res.status(200).json({ success: true, message: "Fetched bank detail successfully", bankDetails });
+        res.status(200).json(bankDetails);
     } catch (err) {
         res.status(500).json({ success: false, message: 'Something went wrong... please try again later', error: err.message });
     }
@@ -74,6 +89,24 @@ export const deleteBankDetails = async (req, res) => {
         }
         res.status(200).json({ success: true, message: "Bank details deleted successfully" });
     } catch (err) {
+        res.status(500).json({ success: false, message: 'Something went wrong... please try again later', error: err.message });
+    }
+};
+
+export const getWalletamount = async (req, res) => {
+    try {
+        const userId = req.userId; // Get userId from the request object (added by middleware)
+
+        // Fetch the document for the logged-in user
+        const bankDetails = await BankDetails.findOne({ userId });
+
+        if (!bankDetails) {
+            return res.status(404).json({ success: false, message: 'Bank details not found for this user' });
+        }
+        const walletAmount = bankDetails.wallet;
+        res.status(200).json({ success: true, message: 'Wallet amount fetched successfully', walletAmount });
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false, message: 'Something went wrong... please try again later', error: err.message });
     }
 };

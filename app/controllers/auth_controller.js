@@ -121,6 +121,7 @@ export const loginUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: 'Something went wrong... please try again later' })
     }
+
 };
 
 export const resendOtp = async (req, res) => {
