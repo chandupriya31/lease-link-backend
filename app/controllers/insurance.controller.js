@@ -1,6 +1,6 @@
 import { Insurance } from "../models/insurance.model.js";
 
-// Get all insurance plans
+
 export const getAllInsurancePlans = async (req, res) => {
   try {
     const insurancePlans = await Insurance.find({ is_active: true });
@@ -19,7 +19,7 @@ export const getAllInsurancePlans = async (req, res) => {
   }
 };
 
-// Get a single insurance plan by ID
+
 export const getInsurancePlanById = async (req, res) => {
   try {
     const { id } = req.params;

@@ -7,12 +7,10 @@ import sendResetPasswordConfirmation from "../../emails/send_reset_password_conf
 import generateRandomPassword from "../helpers/generate_random_otp.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Fixing the bcrypt import
-
-
 export const registerUser = async (req, res) => {
     try {
-        const { email, role, phone_number } = req.body;
-
+        const { email, phone_number } = req.body;
+        console.log("Register User:", { email, phone_number });
         // Validate required fields
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
@@ -21,9 +19,7 @@ export const registerUser = async (req, res) => {
         // Check if user already exists
         const existedUser = await User.findOne({ email });
         if (existedUser) {
-            return res
-                .status(409)
-                .json({ success: false, message: "Email already exists... please login to continue" });
+            return res.status(409).json({ success: false, message: "Email already exists... please login to continue" });
         }
 
         // Generate OTP for email verification
@@ -34,7 +30,7 @@ export const registerUser = async (req, res) => {
             email,
             isValid: false,
             otp,
-            role: role || "user",
+            role: "user",
             phone_number
         });
 
@@ -42,18 +38,18 @@ export const registerUser = async (req, res) => {
         if (!response.success) {
             return res.status(400).json({ message: 'Error sending OTP... please retry to continue' });
         }
-        res.status(201).json({ id: user._id, email, message: "OTP sent for verification" });
+        res.status(201).json({success:true, id: user._id, email, message: "OTP sent for verification" });
     } catch (err) {
-        console.log(err, 'error')
+        console.log(err, 'error');
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 };
-
 
 export const otpVerification = async (req, res) => {
     try {
         const { email, otp } = req.body;
         console.log("OTP Verification:", { email, otp });
+
         // Validate required fields
         if (!email || !otp) {
             return res.status(400).json({ success: false, message: "Email and OTP are required" });
@@ -96,7 +92,6 @@ export const otpVerification = async (req, res) => {
     }
 };
 
-
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -125,9 +120,9 @@ export const loginUser = async (req, res) => {
         console.log("Provided password:", password);
         console.log("Stored password hash:", user.password);
 
-        // Check if password is correct - use the method from the user model
+        // Check if password is correct
         const isPasswordValid = await user.isPasswordCorrect(password);
-        console.log("isPasswordValid", isPasswordValid);
+        console.log("isPasswordValid:", isPasswordValid);
         if (!isPasswordValid) {
             return res.status(401).json({ success: false, message: "Invalid password" });
         }
@@ -171,7 +166,6 @@ export const loginUser = async (req, res) => {
         return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
     }
 };
-
 export const resendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -212,7 +206,6 @@ export const resendOtp = async (req, res) => {
         return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
     }
 };
-
 
 export const forgotPasswordisEmailExist = async (req, res) => {
     try {
@@ -259,7 +252,6 @@ export const forgotPasswordisEmailExist = async (req, res) => {
     }
 };
 
-
 export const forgotPassword = async (req, res) => {
     try {
         const { password } = req.body;
@@ -294,7 +286,6 @@ export const forgotPassword = async (req, res) => {
         return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
     }
 };
-
 
 export const logoutUser = async (req, res) => {
     try {
@@ -374,7 +365,6 @@ export const refreshToken = async (req, res) => {
             });
         } catch (error) {
             return res.status(401).json({ success: false, message: "Invalid refresh token" });
-
         }
     } catch (err) {
         console.error("Refresh token error:", err);
