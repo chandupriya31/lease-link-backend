@@ -11,6 +11,7 @@ import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
 
 
+
 const app = express();
 
 app.use(express.json());
@@ -46,6 +47,8 @@ app.use("/api/v1/contact-us", query_routes);
 app.use("/api/v1/blogs", blog_routes);
 
 app.use("/api/v1/faqs", faqs_routes);
+
+
 
 
 
