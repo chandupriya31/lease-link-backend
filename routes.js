@@ -11,6 +11,7 @@ import addressRoute from "./routes/address.route.js";
 import billingRoute from "./routes/billing.route.js";
 import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
+
 const app = express();
 
 app.use(express.json());
@@ -51,6 +52,8 @@ app.use("/api/v1/billingroute",billingRoute);
 app.use("/api/v1/blogs", blog_routes);
 
 app.use("/api/v1/faqs", faqs_routes);
+
+
 
 
 
