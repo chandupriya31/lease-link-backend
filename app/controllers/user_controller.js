@@ -30,3 +30,12 @@ export const getUserProfile = async (req, res) => {
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 };
+
+export const getUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: 'user' }).select("-password -refreshToken -otp");
+        res.status(200).json(users);
+    } catch (err) {
+        return res.status(500).json({ message: 'Something went wrong... please try again later' });
+    }
+}
