@@ -3,6 +3,7 @@ import Dispute from "../models/dispute.model.js";
 import { Product } from "../models/product.model.js";
 
 import { validationResult } from "express-validator";
+
 export const createDispute = async (req, res) => {
     const { userId, productId, description, location, image } = req.body;
     const errors = validationResult(req)
@@ -77,7 +78,7 @@ export const updateDisputeStatus = async (req, res) => {
             return res.status(400).send({ message: "Dispute doesn't exist by that id" })
         }
 
-        return res.status(200).json({ message: `Dispute updated Successfully to status: ${status}` })
+        return res.status(200).json({ message: `Dispute updated Successfully to status: ${status} `})
     } catch (err) {
         return res.status(500).json({ message: "Something went wrong. Please try again later.", err });
     }
@@ -95,8 +96,3 @@ export const deleteDispute = async (req, res) => {
         return res.status(500).json({ message: "Something went wrong. Please try again later." });
     }
 }
-
-
-
-
-

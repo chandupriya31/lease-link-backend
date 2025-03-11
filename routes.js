@@ -9,6 +9,7 @@ import product_routes from './routes/product_routes.js';
 import query_routes from "./routes/query_routes.js";
 import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
+import dispute_routes from "./routes/dispute_routes.js"
 
 
 
@@ -48,6 +49,7 @@ app.use("/api/v1/blogs", blog_routes);
 
 app.use("/api/v1/faqs", faqs_routes);
 
+app.use("/api/v1/disputes", dispute_routes);
 
 
 
