@@ -1,6 +1,6 @@
 import express from "express";
-import { getUserProfile, getUsers, profileUpdate } from "../app/controllers/user_controller.js";
-import { authenticateUser } from "../app/middlewares/auth_middlewares.js";
+import { getUserProfile, getUsers, profileUpdate, updateUser } from "../app/controllers/user_controller.js";
+import { authenticateUser, isAuthorizedUser } from "../app/middlewares/auth_middlewares.js";
 
 const router = express.Router();
 
@@ -10,5 +10,7 @@ router.put("/profile-update", authenticateUser, profileUpdate);
 router.get("/profile", authenticateUser, getUserProfile);
 
 router.get('/users', getUsers);
+
+router.put('/:id', authenticateUser, isAuthorizedUser, updateUser);
 
 export default router;
