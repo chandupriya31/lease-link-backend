@@ -10,9 +10,9 @@ const upload = multer();
 
 const router = express.Router();
 
-router.put('/add', authenticateUser, isAuthorizedUser, upload.array('images'), checkSchema(productSchema), addProduct);
+router.put('/add', upload.array('images'), checkSchema(productSchema), addProduct);
 router.get('/products', getAllProducts);
 router.get('/:id', getIndividualProduct);
-router.delete('/:id', authenticateUser, isAuthorizedUser, deleteProduct);
+router.delete('/:id', deleteProduct);
 
 export default router;

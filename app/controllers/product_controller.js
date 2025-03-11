@@ -18,7 +18,7 @@ export const addProduct = async (req, res) => {
         selected_insurance,
         brand_name,
         model_name
-    } = req.body
+    } = req.body;
     try {
         const existingProduct = await Product.findOne({ name });
         if (existingProduct) {
