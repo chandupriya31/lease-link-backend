@@ -9,8 +9,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Fixing the bcrypt import
 export const registerUser = async (req, res) => {
     try {
-        const { email, phone_number } = req.body;
-        console.log("Register User:", { email, phone_number });
+        const { name, email, phone_number } = req.body;
         // Validate required fields
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
@@ -27,6 +26,7 @@ export const registerUser = async (req, res) => {
 
         // Create user
         const user = await User.create({
+            name,
             email,
             isValid: false,
             otp,
