@@ -15,6 +15,7 @@ import ratingrouter from "./routes/rating.route.js";
 import cartroute from "./routes/cart.routes.js";
 import bank_routes from './routes/bank_details.routes.js';
 import wallet_routes from './routes/wallet.route.js';
+import paymet_routes from './routes/payment.routes.js';
 
 
 
@@ -64,12 +65,8 @@ app.use("/api/v1/faqs", faqs_routes);
 
 app.use("/api/v1/bank", bank_routes);
 
-app.use("/api/v1/wallet",wallet_routes);
+app.use("/api/v1/wallet", wallet_routes);
 
-
-
-
-
-
+app.use('/api/v1/payment', paymet_routes);
 
 export default app;
