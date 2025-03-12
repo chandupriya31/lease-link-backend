@@ -1,33 +1,161 @@
 import Cart from "../models/cart.model.js";
 import { Product } from "../models/product.model.js";
+import {Insurance} from "../models/insurance.model.js";
+import mongoose from "mongoose";
+
 
 export const createCart = async (req, res) => {
     try {
-        const { product, quantity, start_time, end_time, total_price } = req.body;
-        const productData = await Product.findById(product);
-        if (!productData) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-        const cart = {
-            product,
+        const { userId, productId, quantity, insuranceId, start_time, end_time, total_price } = req.body;
+
+        const cart = new Cart({
+            userId,
+            productId,
+            insuranceId,
             quantity,
-            user: req.user._id,
             total_price,
             start_time,
             end_time
-        }
-        await Cart.create(cart);
-        return res.json({ cart, message: "Cart created successfully" });
-    } catch (err) {
-        return res.status(500).json({ message: 'Something went wrong... please try again later' });
-    }
-}
+        });
 
-export const getCart = async (req, res) => {
-    try {
-        const cart = await Cart.find({ user: req.user._id }).populate('product');
-        return res.json(cart);
+        await cart.save();
+
+        return res.status(201).json({ cart, message: "Cart created successfully" });
     } catch (err) {
-        return res.status(500).json({ message: 'Something went wrong... please try again later' });
+        console.error("Error creating cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+    }
+};
+
+
+
+
+
+export const getCartbyuserid = async (req, res) => {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.params.userId); 
+
+        const cartItems = await Cart.aggregate([
+            { $match: { userId } }, 
+
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+
+            {
+                $lookup: {
+                    from: "insurances",
+                    localField: "insuranceId",
+                    foreignField: "_id",
+                    as: "insuranceDetails"
+                }
+            },
+            { 
+                $unwind: {
+                    path: "$insuranceDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+
+            {
+                $addFields: {
+                    total_price: { $multiply: ["$productDetails.price", "$quantity"] },
+                    "product.name": "$productDetails.name",
+                    "product.images": "$productDetails.images",
+                    "insurance.plan_name": "$insuranceDetails.plan_name"
+                }
+            },
+
+            {
+                $group: {
+                    _id: "$userId",
+                    cartItems: { $push: "$$ROOT" },
+                    totalCartPrice: { $sum: "$total_price" }
+                }
+            }
+        ]);
+
+        if (!cartItems.length) {
+            return res.status(404).json({ message: "No cart items found for this user" });
+        }
+
+        return res.json(cartItems[0]); 
+    } catch (err) {
+        console.error("Error fetching cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+    }
+};
+
+
+
+export const deleteCart = async (req, res) => {
+    try {
+        const { cartId } = req.params;
+        const cart = await Cart.findByIdAndDelete(cartId);
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+        return res.json({ message: "product deleted successfully", user_id: cart.userid });
+    } catch (err) {
+        console.error("Error deleting cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+    }
+};
+
+
+
+export const updateCart = async (req, res) => {
+    try {
+        const { cartid } = req.params;
+        const { quantity } = req.body;
+        const cart = await Cart.findById(cartid);
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+
+       
+        cart.quantity = quantity;
+        await cart.save();
+
+        return res.json({ cart, message: "Cart updated successfully", user_id: cart.userid });
+    } catch (err) {
+        console.error("Error updating cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+    }
+};
+
+export const getCartById = async (req, res) => {
+    try {
+        const { cartid } = req.params;
+        const cart = await Cart.findById(cartid);
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+        return res.json({ cart, user_id: cart.userid });
+    } catch (err) {
+        console.error("Error fetching cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+    }
+};
+
+
+export const getAllCartCountnyuserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const cartItems = await Cart.find({ userId: userId });
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(200).json({ message: "No cart items found for this user" });
+        }
+        return res.json({ count: cartItems.length });
+    } catch (err) {
+        console.error("Error fetching cart:", err);
+        return res.status(500).json({ message: "Something went wrong... please try again later" });
+
     }
 }

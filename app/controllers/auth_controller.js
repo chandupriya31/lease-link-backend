@@ -7,10 +7,13 @@ import sendResetPasswordConfirmation from "../../emails/send_reset_password_conf
 import generateRandomPassword from "../helpers/generate_random_otp.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Fixing the bcrypt import
+
+
+
+
 export const registerUser = async (req, res) => {
     try {
-        const { email, phone_number } = req.body;
-        console.log("Register User:", { email, phone_number });
+        const { name, email, phone_number } = req.body;
         // Validate required fields
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
@@ -27,6 +30,7 @@ export const registerUser = async (req, res) => {
 
         // Create user
         const user = await User.create({
+            name,
             email,
             isValid: false,
             otp,
@@ -38,7 +42,7 @@ export const registerUser = async (req, res) => {
         if (!response.success) {
             return res.status(400).json({ message: 'Error sending OTP... please retry to continue' });
         }
-        res.status(201).json({success:true, id: user._id, email, message: "OTP sent for verification" });
+        res.status(201).json({ success: true, id: user._id, email, message: "OTP sent for verification" });
     } catch (err) {
         console.log(err, 'error');
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
@@ -95,78 +99,36 @@ export const otpVerification = async (req, res) => {
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-     
+
         // Validate required fields
         if (!email || !password) {
-            return res.status(400).json({ success: false, message: "Email and password are required" });
+            return res.status(400).json({ message: 'Please enter your credentials to continue' })
         }
-
-        // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+            return res.status(400).json({ message: 'Please enter a valid credentials' })
         }
 
-        // Check if user account is verified
         if (!user.isValid) {
-            return res.status(401).json({
-                success: false,
-                message: "Account not verified. Please verify your account first."
-            });
+            return res.status(401).json({ message: "Account not verified. Please complete OTP verification." });
         }
-
-        // Add debug logging
-        console.log("Login attempt for:", email);
-        console.log("Provided password:", password);
-        console.log("Stored password hash:", user.password);
-
-        // Check if password is correct
         const isPasswordValid = await user.isPasswordCorrect(password);
-        console.log("isPasswordValid:", isPasswordValid);
         if (!isPasswordValid) {
-            return res.status(401).json({ success: false, message: "Invalid password" });
+            return res.status(401).json({ message: "Please enter valid credentials to continue" });
         }
 
-        // Generate tokens using user methods
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
 
-        // Update user with refresh token
-        user.refreshToken = refreshToken;
-        await user.save();
+        await User.findOneAndUpdate({ email }, { accessToken, refreshToken });
 
-        // Set cookies
-        res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 15 * 60 * 1000 // 15 minutes
-        });
-
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-
-        // Return success response
-        return res.status(200).json({
-            success: true,
-            data: {
-                id: user._id,
-                email: user.email,
-                role: user.role,
-                name: user.name,
-                avatar: user.avatar
-            },
-            accessToken,
-            message: "Logged in successfully"
-        });
-    } catch (err) {
-        console.error("Login error:", err);
-        return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
+        res.status(200).json({ id: user._id, email, accessToken, refreshToken, message: "Login successful" });
+    } catch (error) {
+        return res.status(500).json({ message: 'Something went wrong... please try again later' })
     }
 
 };
+
 export const resendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -211,7 +173,6 @@ export const resendOtp = async (req, res) => {
 export const forgotPasswordisEmailExist = async (req, res) => {
     try {
         const { email } = req.body;
-        console.log(email);
 
         // Validate required fields
         if (!email) {
@@ -279,9 +240,38 @@ export const resetPassword = async (req, res) => {
 
         // Return success response
         return res.status(200).json({ success: true, message: "Password reset successfully" });
+      } catch (err) {
+        console.log(err, 'error')
+        return res.status(500).json({ message: 'Something went wrong... please try again later' });
+    }
+};
+export const forgotPassword = async (req, res) => {
+    try {
+        const { newPassword, confirmPassword, email } = req.body;
+        if (!newPassword || !confirmPassword) {
+            return res.status(400).json({ message: 'Please add your new password and confirm password' });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "New password and confirm password dosn't match" });
+        }
+
+        const user = await User.findOne({ email }).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "Cannot fetch user details" });
+        }
+
+        await User.findOneAndUpdate({ email }, { password: newPassword });
+
+        const response = await sendResetPasswordConfirmation(user.email);
+
+        if (!response.success) {
+            return res.status(400).json({ message: "Problem in sending email.. please try again" });
+        }
+        res.status(200).json({ message: "Your password changed successfully" });
     } catch (err) {
-        console.error("Reset password error:", err);
-        return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
+        console.log(err, 'error')
+        return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 };
 

@@ -1,21 +1,22 @@
 import { validationResult } from "express-validator"
 
 import { Blog } from "../models/blog.model.js";
+import { uploadToS3 } from "../middlewares/file_upload.js";
 
 export const getAllBlogs = async (req, res) => {
     try {
 
-        
+
         const blogsList = await Blog.find()
-        if(!blogsList){
-            return res.status(400).json({message:"Unable to fetch the blog Lists! "})
+        if (!blogsList) {
+            return res.status(400).json({ message: "Unable to fetch the blog Lists! " })
         }
         return res.status(200).json(blogsList)
 
     } catch (err) {
 
         console.error("Error in fetching Blogs", err)
-        return res.status(500).json({ messgae: "Something went wrong! please try again later",err })
+        return res.status(500).json({ messgae: "Something went wrong! please try again later", err })
 
     }
 };
@@ -26,11 +27,11 @@ export const getBlogById = async (req, res) => {
         if (!blog) {
             return res.status(400).json({ message: "Blog Doesnt Exist by that ID " })
         }
-        return res.status(200).json({blog})
+        return res.status(200).json({ blog })
 
     } catch (err) {
         console.error("Errors in Fetching Blog ", err)
-        return res.status(500).json({ message: "Unable to fetch blog by that id",err })
+        return res.status(500).json({ message: "Unable to fetch blog by that id", err })
 
     }
 }
@@ -40,20 +41,26 @@ export const createBlog = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ error: errors.array() })
     }
-    const { image, title, description } = req.body
+    const { title, description } = req.body;
     try {
+        const fileData = req.files && req.files[0];
+        let image = null;
+
+        if (fileData) {
+            image = await uploadToS3(fileData);
+        }
         const newBlog = {
             image,
             title,
             description,
         }
         await Blog.create(newBlog)
-        return res.status(201).json({ message: "Blog have been Created Successfully",newBlog })
+        return res.status(201).json({ message: "Blog have been Created Successfully", newBlog })
 
 
     } catch (err) {
         console.error("Error in creating a Blog: ", err)
-        return res.status(500).send({ message: "Something Went Wrong! Please try again later",err })
+        return res.status(500).send({ message: "Something Went Wrong! Please try again later", err })
     }
 }
 export const editBlog = async (req, res) => {
@@ -76,7 +83,7 @@ export const editBlog = async (req, res) => {
         })
     } catch (err) {
         return res.status(500).json({
-            message: "Something went Wrong... Please try again later",err
+            message: "Something went Wrong... Please try again later", err
         })
     }
 }
@@ -89,7 +96,7 @@ export const deleteBlog = async (req, res) => {
         const deleteBlog = await Blog.findByIdAndDelete(id)
 
         if (!deleteBlog) {
-            return res.status(400).json({message:"Unable to find blog by that id"})
+            return res.status(400).json({ message: "Unable to find blog by that id" })
         }
 
         return res.status(200).json({ message: "Blog has been deleted Successfully", deleteBlog })
@@ -97,6 +104,6 @@ export const deleteBlog = async (req, res) => {
 
     } catch (err) {
         console.error("Delete category error:", err);
-        return res.status(500).json({ message: "Something Went Wrong! Please try again later",err })
+        return res.status(500).json({ message: "Something Went Wrong! Please try again later", err })
     }
 }

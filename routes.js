@@ -17,6 +17,7 @@ import bank_routes from './routes/bank_details.routes.js';
 import wallet_routes from './routes/wallet.route.js';
 import withdraw_routes from './routes/withdraw.route.js';
 import transactions_routes from './routes/transactionRoutes.js';
+import paymet_routes from './routes/payment.routes.js';
 
 
 
@@ -73,9 +74,6 @@ app.use("/api/v1/admin",  withdraw_routes);
 app.use("api/v1", transactions_routes);
 
 
-
-
-
-
+app.use('/api/v1/payment', paymet_routes);
 
 export default app;

@@ -23,6 +23,7 @@ router.post("/refresh-token", refreshToken);
 
 // Protected routes (require authentication)
 router.post("/reset-password/:token", resetPassword);
+
 router.post("/logout", authenticateUser, logoutUser);
 
 export default router;

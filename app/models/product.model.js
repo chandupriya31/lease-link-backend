@@ -28,7 +28,12 @@ const productSchema = new Schema({
     selected_insurance: [{
         type: Schema.Types.ObjectId,
         ref: 'Insurance'
-    }]
+    }],
+    status: {
+        type: String,
+        enum: ['active', 'blocked'],
+        default: 'active'
+    }
 }, { timestamps: true });
 
 

@@ -2,13 +2,17 @@
 import { Schema, model } from 'mongoose';
 
 const cartSchema = new Schema({
-    user: {
+    userId: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    product: {
+    productId: {
         type: Schema.Types.ObjectId,
         ref: 'Product'
+    },
+    insuranceId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Insurance'
     },
     quantity: {
         type: Number,
@@ -18,6 +22,7 @@ const cartSchema = new Schema({
     start_time: Date,
     end_time: Date
 }, { timestamps: true });
+
 
 const Cart = model('Cart', cartSchema);
 
