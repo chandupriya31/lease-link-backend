@@ -1,7 +1,8 @@
 import mongoose from "mongoose"
 const blogSchema = new mongoose.Schema({
     image: {
-        type: String,
+        url: String,
+        key: String
     },
     title: {
         type: String,

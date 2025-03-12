@@ -11,15 +11,11 @@ import addressRoute from "./routes/address.route.js";
 import billingRoute from "./routes/billing.route.js";
 import blog_routes from "./routes/blog_routes.js"
 import faqs_routes from "./routes/faq_routes.js"
-<<<<<<< HEAD
-import dispute_routes from "./routes/dispute_routes.js"
-=======
 import ratingrouter from "./routes/rating.route.js";
 import cartroute from "./routes/cart.routes.js";
 import bank_routes from './routes/bank_details.routes.js';
 import wallet_routes from './routes/wallet.route.js';
 import paymet_routes from './routes/payment.routes.js';
->>>>>>> b28580c056d4c02b7b2b2e064004681f8c60ab03
 
 
 
@@ -67,11 +63,7 @@ app.use("/api/v1/blogs", blog_routes);
 
 app.use("/api/v1/faqs", faqs_routes);
 
-<<<<<<< HEAD
-app.use("/api/v1/disputes", dispute_routes);
-=======
 app.use("/api/v1/bank", bank_routes);
->>>>>>> b28580c056d4c02b7b2b2e064004681f8c60ab03
 
 app.use("/api/v1/wallet", wallet_routes);
 

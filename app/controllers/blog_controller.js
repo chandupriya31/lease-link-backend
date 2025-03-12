@@ -37,18 +37,24 @@ export const getBlogById = async (req, res) => {
 }
 
 export const createBlog = async (req, res) => {
+    console.log(req.body, req.files)
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ error: errors.array() })
     }
     const { title, description } = req.body;
-    try {
-        const fileData = req.files && req.files[0];
-        let image = null;
 
+    // console.log("add data", req.body);
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Please add image" })
+        }
+        const fileData = req.file;
+        let image = null;
         if (fileData) {
             image = await uploadToS3(fileData);
         }
+        console.log(image, 'img')
         const newBlog = {
             image,
             title,
