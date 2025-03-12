@@ -1,10 +1,10 @@
 
 const blogValidator={
-    image:{
-        notEmpty:{
-            errorMessage:"Please provide an image"
-        }
-    },
+    // image:{
+    //     notEmpty:{
+    //         errorMessage:"Please provide an image"
+    //     }
+    // },
     title:{
         notEmpty:{
             errorMessage:"Please Provide a Title"

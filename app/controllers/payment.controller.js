@@ -1,10 +1,10 @@
-import Stripe from 'stripe';
+// import Stripe from 'stripe';
 import { Payment } from '../models/payment.model.js';
 import { Order } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
 import Cart from '../models/cart.model.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createPaymentSession = async (req, res) => {
     const { cartId } = req.body;
