@@ -7,6 +7,10 @@ import sendResetPasswordConfirmation from "../../emails/send_reset_password_conf
 import generateRandomPassword from "../helpers/generate_random_otp.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Fixing the bcrypt import
+
+
+
+
 export const registerUser = async (req, res) => {
     try {
         const { name, email, phone_number } = req.body;
@@ -168,6 +172,7 @@ export const resendOtp = async (req, res) => {
 export const forgotPasswordisEmailExist = async (req, res) => {
     try {
         const { email } = req.body;
+        console.log("Forgot Password:", { email });
 
         // Validate required fields
         if (!email) {
