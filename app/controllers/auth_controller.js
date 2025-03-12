@@ -244,7 +244,7 @@ export const forgotPasswordisEmailExist = async (req, res) => {
         await user.save();
 
         // Send reset password email
-        await sendResetPasswordRequest(req, email, resetToken);
+        await sendResetPasswordRequest( email, resetToken );
 
         // Return success response
         return res.status(200).json({ success: true, message: "Reset password link sent to your email" });
