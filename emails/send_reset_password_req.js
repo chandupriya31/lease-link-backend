@@ -1,10 +1,13 @@
+import { request } from "express";
 import transporter from "../services/nodemailer.js";
 
-async function sendResetPasswordRequest(email) {
+async function sendResetPasswordRequest(req, email, resetToken) {
+    
     try {
-        const resetURL = `http://localhost:5173/enter-new-password`;
+        const frontendOrigin= req.get('origin')
+        const resetURL = `${frontendOrigin}/reset-password/${resetToken}`;
         const mailOptions = {
-            from: "priyadavuluru@gmail.com",
+            from: process.env.SUPER_ADMIN_EMAIL,
             to: email,
             subject: "Password Reset Request",
             html: `
