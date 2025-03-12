@@ -1,7 +1,7 @@
 import express from "express";
 import {
   getAllInsurancePlans,
-  getInsurancePlanById,
+  getInsurancePlanIdsByUserId,
   createInsurancePlan,
   updateInsurancePlan,
   deleteInsurancePlan
@@ -13,31 +13,16 @@ import {
 
 const router = express.Router();
 
-// Public routes
+
 router.get("/", getAllInsurancePlans);
-router.get("/:id", getInsurancePlanById);
 
-// Protected routes - require authentication (admin only)
-router.post(
-  "/",
-  // authenticateUser,
-  // isAuthorizedUser,
-  createInsurancePlan
-);
+router.get("/:userId", getInsurancePlanIdsByUserId);
 
-router.put(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-  updateInsurancePlan
-);
+router.post("/", createInsurancePlan);
 
-// Delete route
-router.delete(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-  deleteInsurancePlan
-);
+router.put("/:id", updateInsurancePlan);
+
+
+router.delete("/:id", deleteInsurancePlan);
 
 export default router;

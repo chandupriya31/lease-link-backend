@@ -17,30 +17,10 @@ const router = express.Router();
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
 
-// Protected routes - require authentication (admin only)
 router.post("/", createCategory);
-router.put(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-
-  updateCategory
-);
+router.put("/:id", updateCategory);
 
 // Delete route
-router.delete(
-  "/:id",
-  // authenticateUser,
-  // isAuthorizedUser,
-  deleteCategory
-);
-
-// Admin only routes
-// router.delete(
-//   "/:id/permanent",
-//   authenticateUser,
-//   Roles,
-//   permanentlyDeleteCategory
-// );
+router.delete("/:id", deleteCategory);
 
 export default router;

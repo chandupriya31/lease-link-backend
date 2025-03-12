@@ -22,7 +22,7 @@ router.post("/resend-otp", resendOtp);
 router.post("/refresh-token", refreshToken);
 
 // Protected routes (require authentication)
-router.post("/reset-password", authenticateUser, forgotPassword);
+router.post("/reset-password", forgotPassword);
 router.post("/logout", authenticateUser, logoutUser);
 
 export default router;

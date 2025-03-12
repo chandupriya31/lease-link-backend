@@ -1,6 +1,6 @@
 import { Insurance } from "../models/insurance.model.js";
 
-// Get all insurance plans
+
 export const getAllInsurancePlans = async (req, res) => {
   try {
     const insurancePlans = await Insurance.find({ is_active: true });
@@ -19,52 +19,57 @@ export const getAllInsurancePlans = async (req, res) => {
   }
 };
 
-// Get a single insurance plan by ID
-export const getInsurancePlanById = async (req, res) => {
+
+export const getInsurancePlanIdsByUserId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    // Find the insurance plan and make sure it's active
-    const insurancePlan = await Insurance.findOne({ _id: id, is_active: true });
+    // Find all active insurance plans for the user and return only their `_id`
+    const insurancePlans = await Insurance.find(
+      { userId, is_active: true },
+      { _id: 1 } // Projection to return only the `_id`
+    );
 
-    if (!insurancePlan) {
+    if (!insurancePlans.length) {
       return res.status(404).json({
         success: false,
-        message: "Insurance plan not found",
+        message: "No active insurance plans found",
       });
     }
 
-    res.status(200).json({
+    
+    const insurancePlanIds = insurancePlans.map(plan => plan._id);
+
+    return res.status(200).json({
       success: true,
-      insurancePlan,
+      insurancePlanIds,
     });
-  } catch (err) {
-    console.error("Get insurance plan by ID error:", err);
-    res.status(500).json({
+  } catch (error) {
+    console.error("Error fetching insurance plan IDs:", error);
+    return res.status(500).json({
       success: false,
-      message: "Something went wrong... please try again later",
+      message: "Internal server error. Please try again later.",
     });
   }
 };
 
-// Create a new insurance plan
+
+
 export const createInsurancePlan = async (req, res) => {
   try {
-    const { plan_name, description, price, features } = req.body;
+    const { userId, plan_name, description, price, features } = req.body;
 
-    // Validate required fields
-    if (!plan_name || !description || !price) {
+    if (!userId || !plan_name || !description || !price) {
       return res.status(400).json({
         success: false,
         message: "Please provide plan name, description, and price",
       });
     }
 
-    // Check if a plan with the same name already exists
-    const existingPlan = await Insurance.findOne({ plan_name });
+    // Check if an insurance plan with the same name already exists for the user
+    const existingPlan = await Insurance.findOne({ userId, plan_name });
 
     if (existingPlan) {
-      // If it exists but is inactive, reactivate it instead of creating new
       if (!existingPlan.is_active) {
         existingPlan.is_active = true;
         existingPlan.description = description || existingPlan.description;
@@ -80,15 +85,14 @@ export const createInsurancePlan = async (req, res) => {
         });
       }
 
-      // If it's already active, return error
       return res.status(400).json({
         success: false,
-        message: "Insurance plan with this name already exists",
+        message: "Insurance plan with this name already exists for this user",
       });
     }
 
-    // Create new insurance plan
     const insurancePlan = await Insurance.create({
+      userId,
       plan_name,
       description,
       price,
@@ -110,7 +114,10 @@ export const createInsurancePlan = async (req, res) => {
   }
 };
 
-// Update an insurance plan
+
+
+
+
 export const updateInsurancePlan = async (req, res) => {
   try {
     const { id } = req.params;
@@ -142,12 +149,12 @@ export const updateInsurancePlan = async (req, res) => {
   }
 };
 
-// Delete an insurance plan (soft delete)
+
 export const deleteInsurancePlan = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the insurance plan by ID and set is_active to false (soft delete)
+    
     const insurancePlan = await Insurance.findByIdAndUpdate(
       id,
       { is_active: false },
