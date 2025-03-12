@@ -95,7 +95,7 @@ export const otpVerification = async (req, res) => {
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
+     
         // Validate required fields
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "Email and password are required" });
@@ -211,6 +211,7 @@ export const resendOtp = async (req, res) => {
 export const forgotPasswordisEmailExist = async (req, res) => {
     try {
         const { email } = req.body;
+        console.log(email);
 
         // Validate required fields
         if (!email) {
@@ -243,7 +244,7 @@ export const forgotPasswordisEmailExist = async (req, res) => {
         await user.save();
 
         // Send reset password email
-        await sendResetPasswordRequest(email, resetToken);
+        await sendResetPasswordRequest(req, email, resetToken);
 
         // Return success response
         return res.status(200).json({ success: true, message: "Reset password link sent to your email" });
@@ -253,32 +254,28 @@ export const forgotPasswordisEmailExist = async (req, res) => {
     }
 };
 
-export const forgotPassword = async (req, res) => {
+
+export const resetPassword = async (req, res) => {
     try {
-        const { password } = req.body;
-        const userId = req.user.id;
-
+        const { newPassword } = req.body;
+        const { token } = req.params;
+      console.log(newPassword);
         // Validate required fields
-        if (!password) {
-            return res.status(400).json({ success: false, message: "Password is required" });
+        if (!token || !newPassword) {
+            return res.status(400).json({ success: false, message: "Token and new password are required" });
         }
 
-        // Find user by id
-        const user = await User.findById(userId);
+        // Find user by reset token
+        const user = await User.findOne({ resetToken: token });
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "Invalid or expired token" });
         }
 
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update user
-        user.password = hashedPassword;
+        // Update user password and clear reset token
+        user.password = newPassword;
         user.resetToken = undefined;
         await user.save();
-
-        // Send reset password confirmation email
-        await sendResetPasswordConfirmation(user.email);
 
         // Return success response
         return res.status(200).json({ success: true, message: "Password reset successfully" });

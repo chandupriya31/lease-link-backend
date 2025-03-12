@@ -28,13 +28,15 @@ export const updateWallet = async (req, res) => {
     try {
         const { userId } = req.params;
         const { amount, type, description } = req.body;
-
+console.log(req.body)
         // Validate userId
         if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ success: false, message: "Invalid user ID format" });
         }
 
         // Validate amount
+
+
         if (!amount || amount <= 0) {
             return res.status(400).json({ success: false, message: "Amount must be greater than zero" });
         }
@@ -57,13 +59,12 @@ export const updateWallet = async (req, res) => {
             return res.status(400).json({ success: false, message: "Insufficient balance" });
         }
 
-        // Update balance
         wallet.balance = type === "credit" ? wallet.balance + amount : wallet.balance - amount;
 
-        // Add transaction record
+
         wallet.transactions.push({ amount, type, description });
 
-        // Save updated wallet
+
         await wallet.save();
 
         res.status(200).json({ success: true, message: `Wallet ${type} successful`, balance: wallet.balance, transactions: wallet.transactions });
