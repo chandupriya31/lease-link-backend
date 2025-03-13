@@ -13,7 +13,7 @@ export const authenticateUser = async (req, res, next) => {
     if (req.cookies && req.cookies.accessToken) {
       // Get from cookie
       token = req.cookies.accessToken;
-      
+
     } else if (authHeader && authHeader.startsWith("Bearer ")) {
       // Get from Authorization header
       token = authHeader.split(" ")[1];
@@ -24,55 +24,55 @@ export const authenticateUser = async (req, res, next) => {
 
 
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Access denied. No token provided." 
+      return res.status(401).json({
+        success: false,
+        message: "Access denied. No token provided."
       });
     }
 
     try {
       // Verify token
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      
+
       // Get user from database
       const user = await User.findById(decoded._id || decoded.id).select("-password");
-      
+
       if (!user) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not found or token is invalid" 
+        return res.status(401).json({
+          success: false,
+          message: "User not found or token is invalid"
         });
       }
-      
+
       // Check if user is blocked
       if (user.status === 'blocked') {
-        return res.status(403).json({ 
-          success: false, 
-          message: "Your account has been blocked. Please contact admin." 
+        return res.status(403).json({
+          success: false,
+          message: "Your account has been blocked. Please contact admin."
         });
       }
-      
+
       // Set user in request
       req.user = user;
       next();
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        return res.status(401).json({ 
-          success: false, 
-          message: "Token expired. Please login again." 
+        return res.status(401).json({
+          success: false,
+          message: "Token expired. Please login again."
         });
       }
-      
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid token. Please login again." 
+
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token. Please login again."
       });
     }
   } catch (error) {
     console.error("Authentication error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Something went wrong with authentication. Please try again." 
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong with authentication. Please try again."
     });
   }
 };
@@ -85,26 +85,26 @@ export const isAuthorizedUser = (req, res, next) => {
   try {
     // Check if user exists in request (set by authenticateUser)
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated"
       });
     }
-    
+
     // Check if user is admin
     if (req.user.role !== "admin") {
-      return res.status(403).json({ 
-        success: false, 
-        message: "Unauthorized. Admin access required." 
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized. Admin access required."
       });
     }
-    
+
     next();
   } catch (error) {
     console.error("Authorization error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Something went wrong with authorization. Please try again." 
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong with authorization. Please try again."
     });
   }
 };
