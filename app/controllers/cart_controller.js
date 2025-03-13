@@ -63,7 +63,7 @@ export const getCartbyuserid = async (req, res) => {
            
             {
                 $lookup: {
-                    from: Insurance.collection.name,
+                    from: 'insurances',
                     localField: "insuranceId", 
                     foreignField: "_id", 
                     as: "insuranceDetails"
