@@ -7,11 +7,13 @@ const productSchema = new Schema({
     description: String,
     user: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     category: {
         type: Schema.Types.ObjectId,
-        ref: 'Category'
+        ref: 'Category',
+        required: true
     },
     price: Number,
     is_best_seller: {

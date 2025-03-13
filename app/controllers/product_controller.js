@@ -25,8 +25,14 @@ export const addProduct = async (req, res) => {
 		selected_insurance,
 		brand_name,
 		model_name,
-		userId,
+		user,
 	} = req.body;
+   console.log("Request body:", req.body);
+
+	if (!user || !mongoose.Types.ObjectId.isValid(user)) {
+		return res.status(400).json({ message: "Invalid or missing user ID" });
+	}
+
 	if (!mongoose.Types.ObjectId.isValid(category)) {
 		return res.status(400).json({ message: "Invalid category ID" });
 	}
@@ -54,7 +60,7 @@ export const addProduct = async (req, res) => {
 					is_best_seller,
 					price: parseFloat(price),
 					total_quantity: parseInt(total_quantity, 10),
-					userId,
+					user,
 					images,
 					insurance,
 					selected_insurance,
@@ -116,10 +122,6 @@ export const getproductscategory = async (req, res) => {
 	}
 };
 
-
-
-
-
 export const getIndividualProduct = async (req, res) => {
 	const id = req.params.id;
 	if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -134,11 +136,7 @@ export const getIndividualProduct = async (req, res) => {
 		const ratings = await Rating.find({ product: id });
 
 		const userIds = ratings.map(rating => rating.user);
-
-
 		const userDetails = await User.find({ _id: { $in: userIds } }, 'email avatar');
-
-
 		const userDetailsMap = userDetails.reduce((acc, user) => {
 			acc[user._id.toString()] = {
 				email: user.email,
@@ -147,25 +145,33 @@ export const getIndividualProduct = async (req, res) => {
 			return acc;
 		}, {});
 
-
 		const ratingsWithUserDetails = ratings.map(rating => ({
 			...rating.toObject(),
 			email: userDetailsMap[rating.user.toString()]?.email,
 			avatar: userDetailsMap[rating.user.toString()]?.avatar,
 		}));
 
-
-		const insuranceDetails = await Insurance.find({
-			_id: { $in: product.selected_insurance },
-		});
-
+		// Fix the insurance query - check if selected_insurance exists and has valid values
+		let insuranceDetails = [];
+		if (product.selected_insurance && product.selected_insurance.length > 0 && 
+            product.selected_insurance[0] !== "undefined") {
+			// Make sure all IDs are valid before querying
+			const validInsuranceIds = product.selected_insurance.filter(id => 
+                id && id !== "undefined" && mongoose.Types.ObjectId.isValid(id)
+            );
+            
+			if (validInsuranceIds.length > 0) {
+				insuranceDetails = await Insurance.find({
+					_id: { $in: validInsuranceIds },
+				});
+			}
+		}
 
 		let averageRating = 0;
 		if (ratings.length > 0) {
 			const totalRatings = ratings.reduce((acc, rating) => acc + rating.rating, 0);
 			averageRating = totalRatings / ratings.length;
 		}
-
 
 		return res.status(200).json({
 			success: true,
@@ -183,9 +189,6 @@ export const getIndividualProduct = async (req, res) => {
 		});
 	}
 };
-
-
-
 
 export const deleteProduct = async (req, res) => {
 	const id = req.params.id;
