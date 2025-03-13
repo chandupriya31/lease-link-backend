@@ -124,67 +124,67 @@ export const getproductscategory = async (req, res) => {
 
 
 export const getIndividualProduct = async (req, res) => {
-    const id = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ success: false, message: "Invalid product ID" });
-    }
-    try {
-        const product = await Product.findById(id);
-        if (!product) {
-            return res.status(404).json({ success: false, message: "Product not found" });
-        }
-        const category = await Category.findById(product.category);
-        const ratings = await Rating.find({ product: id });
+	const id = req.params.id;
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		return res.status(400).json({ success: false, message: "Invalid product ID" });
+	}
+	try {
+		const product = await Product.findById(id);
+		if (!product) {
+			return res.status(404).json({ success: false, message: "Product not found" });
+		}
+		const category = await Category.findById(product.category);
+		const ratings = await Rating.find({ product: id });
 
-        const userIds = ratings.map(rating => rating.user);
+		const userIds = ratings.map(rating => rating.user);
 
 
-        const userDetails = await User.find({ _id: { $in: userIds } }, 'email avatar');
+		const userDetails = await User.find({ _id: { $in: userIds } }, 'email avatar');
 
-      
-        const userDetailsMap = userDetails.reduce((acc, user) => {
-            acc[user._id.toString()] = {
-                email: user.email,
-                avatar: user.avatar,
-            };
-            return acc;
-        }, {});
 
-   
-        const ratingsWithUserDetails = ratings.map(rating => ({
-            ...rating.toObject(), 
-            email: userDetailsMap[rating.user.toString()]?.email, 
-            avatar: userDetailsMap[rating.user.toString()]?.avatar, 
-        }));
+		const userDetailsMap = userDetails.reduce((acc, user) => {
+			acc[user._id.toString()] = {
+				email: user.email,
+				avatar: user.avatar,
+			};
+			return acc;
+		}, {});
 
-        
-        const insuranceDetails = await Insurance.find({
-            _id: { $in: product.selected_insurance },
-        });
 
-    
-        let averageRating = 0;
-        if (ratings.length > 0) {
-            const totalRatings = ratings.reduce((acc, rating) => acc + rating.rating, 0);
-            averageRating = totalRatings / ratings.length;
-        }
+		const ratingsWithUserDetails = ratings.map(rating => ({
+			...rating.toObject(),
+			email: userDetailsMap[rating.user.toString()]?.email,
+			avatar: userDetailsMap[rating.user.toString()]?.avatar,
+		}));
 
-    
-        return res.status(200).json({
-            success: true,
-            product,
-            category,
-            ratings: ratingsWithUserDetails,
-            averageRating,
-            insurance: insuranceDetails,
-        });
-    } catch (err) {
-        console.error("Error in getIndividualProduct:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong... please try again later",
-        });
-    }
+
+		const insuranceDetails = await Insurance.find({
+			_id: { $in: product.selected_insurance },
+		});
+
+
+		let averageRating = 0;
+		if (ratings.length > 0) {
+			const totalRatings = ratings.reduce((acc, rating) => acc + rating.rating, 0);
+			averageRating = totalRatings / ratings.length;
+		}
+
+
+		return res.status(200).json({
+			success: true,
+			product,
+			category,
+			ratings: ratingsWithUserDetails,
+			averageRating,
+			insurance: insuranceDetails,
+		});
+	} catch (err) {
+		console.error("Error in getIndividualProduct:", err);
+		return res.status(500).json({
+			success: false,
+			message: "Something went wrong... please try again later",
+		});
+	}
 };
 
 

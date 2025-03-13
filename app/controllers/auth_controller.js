@@ -122,7 +122,7 @@ export const loginUser = async (req, res) => {
 
         await User.findOneAndUpdate({ email }, { accessToken, refreshToken });
 
-        res.status(200).json({ id: user._id, email, accessToken, refreshToken, message: "Login successful" });
+        res.status(200).json({ success: true, id: user._id, email, accessToken, refreshToken, avatar: user.avatar, message: "Login successful" });
     } catch (error) {
         return res.status(500).json({ message: 'Something went wrong... please try again later' })
     }
@@ -205,7 +205,7 @@ export const forgotPasswordisEmailExist = async (req, res) => {
         await user.save();
 
         // Send reset password email
-        await sendResetPasswordRequest( email, resetToken );
+        await sendResetPasswordRequest(email, resetToken);
 
         // Return success response
         return res.status(200).json({ success: true, message: "Reset password link sent to your email" });
@@ -220,7 +220,7 @@ export const resetPassword = async (req, res) => {
     try {
         const { newPassword } = req.body;
         const { token } = req.params;
-      console.log(newPassword);
+        console.log(newPassword);
         // Validate required fields
         if (!token || !newPassword) {
             return res.status(400).json({ success: false, message: "Token and new password are required" });
@@ -240,7 +240,7 @@ export const resetPassword = async (req, res) => {
 
         // Return success response
         return res.status(200).json({ success: true, message: "Password reset successfully" });
-      } catch (err) {
+    } catch (err) {
         console.log(err, 'error')
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
