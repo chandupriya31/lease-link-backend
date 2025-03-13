@@ -82,6 +82,7 @@ export const getUsers = async (req, res) => {
                     name: 1,
                     email: 1,
                     status: 1,
+                    createdAt: 1,
                     product_count: { $size: '$products' }
                 }
             }
@@ -107,6 +108,7 @@ export const updateUser = async (req, res) => {
         }
         res.status(200).json({ user, products, message: "User status successfully" })
     } catch (err) {
+        console.log(err)
         return res.status(500).json({ message: 'Something went wrong... please try again later' });
     }
 }

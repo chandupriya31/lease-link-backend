@@ -8,7 +8,6 @@ import Rating from "../models/rating.model.js";
 import { User } from "../models/user.model.js";
 
 
-
 export const addProduct = async (req, res) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
@@ -28,7 +27,7 @@ export const addProduct = async (req, res) => {
 		model_name,
 		userId,
 	} = req.body;
-
+   console.log("dcvfbcfdvfv",req.body);
 	if (!mongoose.Types.ObjectId.isValid(category)) {
 		return res.status(400).json({ message: "Invalid category ID" });
 	}
@@ -122,7 +121,6 @@ export const getproductscategory = async (req, res) => {
 
 
 
-
 export const getIndividualProduct = async (req, res) => {
 	const id = req.params.id;
 	if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -141,6 +139,7 @@ export const getIndividualProduct = async (req, res) => {
 
 		const userDetails = await User.find({ _id: { $in: userIds } }, 'email avatar');
 
+<<<<<<< Updated upstream
 
 		const userDetailsMap = userDetails.reduce((acc, user) => {
 			acc[user._id.toString()] = {
@@ -185,9 +184,53 @@ export const getIndividualProduct = async (req, res) => {
 			message: "Something went wrong... please try again later",
 		});
 	}
+=======
+
+        const userDetailsMap = userDetails.reduce((acc, user) => {
+            acc[user._id.toString()] = {
+                email: user.email,
+                avatar: user.avatar,
+            };
+            return acc;
+        }, {});
+
+
+        const ratingsWithUserDetails = ratings.map(rating => ({
+            ...rating.toObject(), 
+            email: userDetailsMap[rating.user.toString()]?.email, 
+            avatar: userDetailsMap[rating.user.toString()]?.avatar, 
+        }));
+
+
+        const insuranceDetails = await Insurance.find({
+            _id: { $in: product.selected_insurance },
+        });
+
+
+        let averageRating = 0;
+        if (ratings.length > 0) {
+            const totalRatings = ratings.reduce((acc, rating) => acc + rating.rating, 0);
+            averageRating = totalRatings / ratings.length;
+        }
+
+
+        return res.status(200).json({
+            success: true,
+            product,
+            category,
+            ratings: ratingsWithUserDetails,
+            averageRating,
+            insurance: insuranceDetails,
+        });
+    } catch (err) {
+        console.error("Error in getIndividualProduct:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong... please try again later",
+        });
+    }
+>>>>>>> Stashed changes
 };
-
-
 
 
 

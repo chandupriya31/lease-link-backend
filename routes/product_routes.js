@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { addProduct, deleteProduct, getAllProducts, getIndividualProduct, getproductscategory } from '../app/controllers/product_controller.js';
+import { addProduct, deleteProduct, getAllProducts,getproductscategory,getIndividualProduct } from '../app/controllers/product_controller.js';
 import { authenticateUser, isAuthorizedUser } from '../app/middlewares/auth_middlewares.js';
 import { checkSchema } from 'express-validator';
 import { productSchema } from '../app/validators/product_validation.js';
