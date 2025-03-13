@@ -20,9 +20,9 @@ router.get("/:userId", getInsurancePlanIdsByUserId);
 
 router.post("/", createInsurancePlan);
 
-router.put("/:id", updateInsurancePlan);
+router.put("/:Id", updateInsurancePlan);
 
 
-router.delete("/:id", deleteInsurancePlan);
+router.delete("/:Id", deleteInsurancePlan);
 
 export default router;

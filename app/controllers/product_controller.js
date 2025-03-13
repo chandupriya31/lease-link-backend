@@ -8,7 +8,6 @@ import Rating from "../models/rating.model.js";
 import { User } from "../models/user.model.js";
 
 
-
 export const addProduct = async (req, res) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
@@ -28,7 +27,6 @@ export const addProduct = async (req, res) => {
 		model_name,
 		userId,
 	} = req.body;
-
 	if (!mongoose.Types.ObjectId.isValid(category)) {
 		return res.status(400).json({ message: "Invalid category ID" });
 	}
@@ -122,7 +120,6 @@ export const getproductscategory = async (req, res) => {
 
 
 
-
 export const getIndividualProduct = async (req, res) => {
 	const id = req.params.id;
 	if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -186,8 +183,6 @@ export const getIndividualProduct = async (req, res) => {
 		});
 	}
 };
-
-
 
 
 

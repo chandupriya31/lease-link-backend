@@ -1,12 +1,15 @@
 import Cart from "../models/cart.model.js";
 import { Product } from "../models/product.model.js";
 import {Insurance} from "../models/insurance.model.js";
+import Billing from "../models/billing.model.js";
 import mongoose from "mongoose";
 
 
 export const createCart = async (req, res) => {
     try {
         const { userId, productId, quantity, insuranceId, start_time, end_time, total_price } = req.body;
+
+        console.log("req.body",req.body);
 
         const cart = new Cart({
             userId,
@@ -27,17 +30,26 @@ export const createCart = async (req, res) => {
     }
 };
 
-
-
-
-
 export const getCartbyuserid = async (req, res) => {
     try {
-        const userId = new mongoose.Types.ObjectId(req.params.userId); 
-
+        const userId = new mongoose.Types.ObjectId(req.params.userId);
+        
+       
+        const bookedBills = await Billing.find({}, 'cartIds');
+        const bookedCartIds = bookedBills.reduce((acc, bill) => {
+            return acc.concat(bill.cartIds);
+        }, []);
+        
         const cartItems = await Cart.aggregate([
-            { $match: { userId } }, 
+            { 
+                $match: { 
+                    userId,
+                    
+                    _id: { $nin: bookedCartIds }
+                } 
+            },
 
+    
             {
                 $lookup: {
                     from: "products",
@@ -48,30 +60,42 @@ export const getCartbyuserid = async (req, res) => {
             },
             { $unwind: "$productDetails" },
 
+           
             {
                 $lookup: {
-                    from: "insurances",
-                    localField: "insuranceId",
-                    foreignField: "_id",
+                    from: 'insurances',
+                    localField: "insuranceId", 
+                    foreignField: "_id", 
                     as: "insuranceDetails"
                 }
             },
-            { 
+            {
                 $unwind: {
                     path: "$insuranceDetails",
-                    preserveNullAndEmptyArrays: true
+                    preserveNullAndEmptyArrays: true 
                 }
             },
 
+         
             {
                 $addFields: {
-                    total_price: { $multiply: ["$productDetails.price", "$quantity"] },
+                    insurance: {
+                        plan_name: "$insuranceDetails.plan_name",
+                        price: "$insuranceDetails.price",
+                    },
+                    insurancePrice: { $ifNull: ["$insuranceDetails.price", 0] },
+                    total_price: {
+                        $multiply: [
+                            { $add: ["$productDetails.price", { $ifNull: ["$insuranceDetails.price", 0] }] },
+                            "$quantity"
+                        ]
+                    },
                     "product.name": "$productDetails.name",
-                    "product.images": "$productDetails.images",
-                    "insurance.plan_name": "$insuranceDetails.plan_name"
+                    "product.images": "$productDetails.images"
                 }
             },
 
+        
             {
                 $group: {
                     _id: "$userId",
@@ -85,12 +109,17 @@ export const getCartbyuserid = async (req, res) => {
             return res.status(404).json({ message: "No cart items found for this user" });
         }
 
-        return res.json(cartItems[0]); 
+        return res.json(cartItems[0]);
     } catch (err) {
         console.error("Error fetching cart:", err);
         return res.status(500).json({ message: "Something went wrong... please try again later" });
     }
 };
+
+
+
+
+
 
 
 
@@ -148,14 +177,26 @@ export const getCartById = async (req, res) => {
 export const getAllCartCountnyuserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const cartItems = await Cart.find({ userId: userId });
+        
+        // Get all billing records and extract all cartIds from the cartIds array
+        const bookedBills = await Billing.find({}, 'cartIds');
+        const bookedCartIds = bookedBills.reduce((acc, bill) => {
+            return acc.concat(bill.cartIds);
+        }, []);
+        
+        // Find cart items that are not in billing records
+        const cartItems = await Cart.find({ 
+            userId: userId,
+            _id: { $nin: bookedCartIds }
+        });
+        
         if (!cartItems || cartItems.length === 0) {
-            return res.status(200).json({ message: "No cart items found for this user" });
+            return res.status(200).json({ count: 0 });
         }
+        
         return res.json({ count: cartItems.length });
     } catch (err) {
-        console.error("Error fetching cart:", err);
+        console.error("Error fetching cart count:", err);
         return res.status(500).json({ message: "Something went wrong... please try again later" });
-
     }
-}
+};

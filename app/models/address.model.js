@@ -6,11 +6,43 @@ const addressSchema = new Schema({
         ref: 'User',
         required: true
     },
-    address_type: {
+    name: {
         type: String,
         required: true
     },
-    address_details: {
+    email: {
+        type: String,
+        required: true
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    address: {
+        type: String,
+        required: true
+    },
+    city: {
+        type: String,
+        required: true
+    },
+    state: {
+        type: String,
+        required: true
+    },
+    zipcode: {
+        type: String,
+        required: true
+    },
+    proof_type: {
+        type: String,
+        required: true
+    },
+    proof_id: {
+        type: String,
+        required: true
+    },
+    proof_document: {
         type: String,
         required: true
     }

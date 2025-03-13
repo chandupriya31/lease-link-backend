@@ -24,10 +24,9 @@ export const getInsurancePlanIdsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find all active insurance plans for the user and return only their `_id`
     const insurancePlans = await Insurance.find(
       { userId, is_active: true },
-      { _id: 1 } // Projection to return only the `_id`
+      { userId,_id: 1,plan_name:1,description:1,price:1,features:1 } 
     );
 
     if (!insurancePlans.length) {
@@ -38,11 +37,19 @@ export const getInsurancePlanIdsByUserId = async (req, res) => {
     }
 
     
-    const insurancePlanIds = insurancePlans.map(plan => plan._id);
+    const insurancePlansData = insurancePlans.map(plan => ({
+      userId:userId,
+      plan_id: plan._id,
+      plan_name: plan.plan_name,
+      description: plan.description,
+      price: plan.price,
+      features: plan.features,
+    }));
+  
 
     return res.status(200).json({
       success: true,
-      insurancePlanIds,
+      insurancePlans:insurancePlansData
     });
   } catch (error) {
     console.error("Error fetching insurance plan IDs:", error);
@@ -66,7 +73,6 @@ export const createInsurancePlan = async (req, res) => {
       });
     }
 
-    // Check if an insurance plan with the same name already exists for the user
     const existingPlan = await Insurance.findOne({ userId, plan_name });
 
     if (existingPlan) {
@@ -120,10 +126,10 @@ export const createInsurancePlan = async (req, res) => {
 
 export const updateInsurancePlan = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { Id } = req.params;
     const updates = req.body;
     console.log("updates", updates);
-    const insurancePlan = await Insurance.findByIdAndUpdate(id, updates, {
+    const insurancePlan = await Insurance.findByIdAndUpdate(Id, updates, {
       new: true,
       runValidators: true,
     });

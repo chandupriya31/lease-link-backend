@@ -7,30 +7,16 @@ const billingSchema = new Schema(
             ref: 'User',
             required: true,
         },
-        full_name: {
-            type: String,
+        addressId: {
+            type: Schema.Types.ObjectId,
+            ref: 'address',
             required: true,
         },
-        phone_number: {
-            type: String,
+        cartIds: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Cart',
             required: true,
-        },
-        email: {
-            type: String,
-            required: true,
-        },
-        address: {
-            type: String,
-            required: true,
-        },
-        state: {
-            type: String,
-            required: true,
-        },
-        pincode: {
-            type: String,
-            required: true,
-        }
+        }]
     },
     { timestamps: true }
 );

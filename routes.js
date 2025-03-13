@@ -19,8 +19,6 @@ import withdraw_routes from './routes/withdraw.route.js';
 import transactions_routes from './routes/transactionRoutes.js';
 import paymet_routes from './routes/payment.routes.js';
 
-
-
 const app = express();
 
 app.use(express.json());
@@ -34,7 +32,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "accesstoken"]
 }));
-
 
 app.use("/api/v1/address", addressRoute);
 app.use("/api/v1/rating", ratingrouter);

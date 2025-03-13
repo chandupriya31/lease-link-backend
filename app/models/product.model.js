@@ -26,8 +26,7 @@ const productSchema = new Schema({
         default: false
     },
     selected_insurance: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Insurance'
+        type: String,
     }],
     status: {
         type: String,
