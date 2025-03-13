@@ -27,15 +27,12 @@ export const addProduct = async (req, res) => {
 		model_name,
 		user,
 	} = req.body;
-<<<<<<< Updated upstream
-=======
    console.log("Request body:", req.body);
 
 	if (!user || !mongoose.Types.ObjectId.isValid(user)) {
 		return res.status(400).json({ message: "Invalid or missing user ID" });
 	}
 
->>>>>>> Stashed changes
 	if (!mongoose.Types.ObjectId.isValid(category)) {
 		return res.status(400).json({ message: "Invalid category ID" });
 	}
@@ -140,11 +137,6 @@ export const getIndividualProduct = async (req, res) => {
 
 		const userIds = ratings.map(rating => rating.user);
 		const userDetails = await User.find({ _id: { $in: userIds } }, 'email avatar');
-<<<<<<< Updated upstream
-
-
-=======
->>>>>>> Stashed changes
 		const userDetailsMap = userDetails.reduce((acc, user) => {
 			acc[user._id.toString()] = {
 				email: user.email,
