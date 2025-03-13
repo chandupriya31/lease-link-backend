@@ -136,6 +136,7 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+<<<<<<< Updated upstream
         if (!email || !password) {
             return res
                 .status(400)
@@ -164,10 +165,34 @@ export const loginUser = async (req, res) => {
                     message: "Please enter valid credentials to continue",
                 });
         }
+=======
+		if (!email || !password) {
+			return res.status(400).json({ message: 'Please enter your credentials to continue' });
+		}
+
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(400).json({ message: 'Please enter valid credentials' });
+		}
+
+		if (!user.isValid) {
+			return res.status(401).json({
+				message: "Account not verified. Please complete OTP verification."
+			});
+		}
+
+		const isPasswordValid = await user.isPasswordCorrect(password);
+		if (!isPasswordValid) {
+			return res.status(401).json({
+				message: "Please enter valid credentials to continue"
+			});
+		}
+>>>>>>> Stashed changes
 
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
 
+<<<<<<< Updated upstream
         await User.findOneAndUpdate({ email }, { accessToken, refreshToken });
 
         res.status(200).json({
@@ -192,6 +217,22 @@ export const loginUser = async (req, res) => {
                 message: "Something went wrong... please try again later",
             });
     }
+=======
+		await User.findOneAndUpdate({ email }, { accessToken, refreshToken });
+
+		res.status(200).json({ 
+			success: true, 
+			id: user._id, 
+			email, 
+			accessToken, 
+			refreshToken, 
+			avatar: user.avatar, 
+			message: "Login successful" 
+		});
+	} catch (error) {
+		return res.status(500).json({ message: 'Something went wrong... please try again later' });
+	}
+>>>>>>> Stashed changes
 };
 
 export const resendOtp = async (req, res) => {
@@ -259,28 +300,44 @@ export const resendOtp = async (req, res) => {
 export const forgotPasswordisEmailExist = async (req, res) => {
     try {
         const { email } = req.body;
+<<<<<<< Updated upstream
 
         // Validate required fields
         if (!email) {
             return res
                 .status(400)
                 .json({ success: false, message: "Email is required" });
+=======
+        console.log("Forgot Password:", { email });
+
+        // Validate required fields
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+>>>>>>> Stashed changes
         }
 
         // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
+<<<<<<< Updated upstream
             return res
                 .status(404)
                 .json({ success: false, message: "User not found" });
+=======
+            return res.status(404).json({ success: false, message: "User not found" });
+>>>>>>> Stashed changes
         }
 
         // Check if user account is verified
         if (!user.isValid) {
             return res.status(401).json({
                 success: false,
+<<<<<<< Updated upstream
                 message:
                     "Account not verified. Please verify your account first.",
+=======
+                message: "Account not verified. Please verify your account first."
+>>>>>>> Stashed changes
             });
         }
 
@@ -299,6 +356,7 @@ export const forgotPasswordisEmailExist = async (req, res) => {
         await sendResetPasswordRequest(email, resetToken);
 
         // Return success response
+<<<<<<< Updated upstream
         return res
             .status(200)
             .json({
@@ -313,9 +371,20 @@ export const forgotPasswordisEmailExist = async (req, res) => {
                 success: false,
                 message: "Something went wrong... please try again later",
             });
+=======
+        return res.status(200).json({
+            success: true,
+            message: "Reset password link sent to your email"
+        });
+    } catch (err) {
+        console.error("Forgot password error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong... please try again later"
+        });
+>>>>>>> Stashed changes
     }
 };
-
 
 export const resetPassword = async (req, res) => {
     try {
@@ -417,6 +486,7 @@ export const logoutUser = async (req, res) => {
 };
 
 export const refreshToken = async (req, res) => {
+<<<<<<< Updated upstream
     try {
         const incomingRefreshToken =
             req.cookies.refreshToken || req.body.refreshToken;
@@ -502,4 +572,67 @@ export const refreshToken = async (req, res) => {
                 message: "Something went wrong... please try again later",
             });
     }
+=======
+	try {
+		const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+		if (!incomingRefreshToken) {
+			return res.status(401).json({ success: false, message: "Refresh token is required" });
+		}
+
+		try {
+			const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+			const user = await User.findById(decodedToken._id);
+			
+			if (!user) {
+				return res.status(404).json({ success: false, message: "Invalid refresh token" });
+			}
+
+			if (user.refreshToken !== incomingRefreshToken) {
+				return res.status(401).json({
+					success: false,
+					message: "Refresh token is expired or used"
+				});
+			}
+
+			const accessToken = jwt.sign(
+				{ id: user._id },
+				process.env.ACCESS_TOKEN_SECRET,
+				{ expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+			);
+			const refreshToken = jwt.sign(
+				{ id: user._id },
+				process.env.REFRESH_TOKEN_SECRET,
+				{ expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+			);
+
+			user.accessToken = accessToken;
+			user.refreshToken = refreshToken;
+			await user.save();
+
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				maxAge: 15 * 60 * 1000
+			});
+
+			res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				maxAge: 7 * 24 * 60 * 60 * 1000
+			});
+
+			return res.status(200).json({
+				success: true,
+				accessToken,
+				message: "Access token refreshed successfully"
+			});
+		} catch (error) {
+			return res.status(401).json({ success: false, message: "Invalid refresh token" });
+		}
+	} catch (err) {
+		console.error("Refresh token error:", err);
+		return res.status(500).json({ success: false, message: "Something went wrong... please try again later" });
+	}
+>>>>>>> Stashed changes
 };
