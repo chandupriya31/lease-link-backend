@@ -5,9 +5,9 @@ import faqValidator from "../app/validators/faq_validation.js";
 import { authenticateUser, isAuthorizedUser } from '../app/middlewares/auth_middlewares.js';
 
 const router = express.Router()
-router.post("/faq", checkSchema(faqValidator), createFAQ)
-router.get("/faqs", getAllFAQS)
+router.post("/",authenticateUser, isAuthorizedUser, checkSchema(faqValidator), createFAQ)
+router.get("/", getAllFAQS)
 router.get("/:id", getFAQById)
-router.put("/:id", editFAQ)
-router.delete("/:id", deleteFAQ)
+router.put("/:id",authenticateUser, isAuthorizedUser, editFAQ)
+router.delete("/:id",authenticateUser, isAuthorizedUser, deleteFAQ)
 export default router;
