@@ -5,65 +5,66 @@ import fs from "fs";
 
 // Configure multer for local file storage
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = 'uploads/proofs';
-    
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/proofs';
+
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
     }
-    
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed!'), false);
+    }
 };
 
-export const upload = multer({ 
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } 
+export const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 export const createAddress = async (req, res) => {
+    console.log('req.body', req.body);
     try {
-        const { 
+        const {
             user,
-            name, 
-            email, 
-            phone, 
-            address, 
-            city, 
-            state, 
-            zipcode, 
-            proof_type, 
+            name,
+            email,
+            phone,
+            address,
+            city,
+            state,
+            zipcode,
+            proof_type,
             proof_id
         } = req.body;
 
-        
+
         if (!req.file) {
             return res.status(400).json({ message: "Proof document is required" });
         }
 
-        
+
         const proof_document = req.file.path;
 
         // Check if all required fields are provided
-        if (!user || !name || !email || !phone || !address || !city || 
+        if (!user || !name || !email || !phone || !address || !city ||
             !state || !zipcode || !proof_type || !proof_id) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        
+
         const addressData = {
             user,
             name,
@@ -78,7 +79,7 @@ export const createAddress = async (req, res) => {
             proof_document
         };
 
-        
+
         if (req.body.user) {
             addressData.user = req.body.user;
         }
@@ -96,34 +97,34 @@ export const updateAddress = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
-        
+
         const existingAddress = await Address.findById(id);
         if (!existingAddress) {
             return res.status(404).json({ message: "Address not found" });
         }
-        
+
         if (req.file || (req.files && req.files.length > 0)) {
             if (existingAddress.proof_document && existingAddress.proof_document.key) {
                 await deleteFromS3(existingAddress.proof_document.key);
             }
-            
+
             const filesToUpload = req.files || [req.file];
             const uploadedFiles = await Promise.all(
                 filesToUpload.map((file) => uploadToS3(file))
             );
-            
+
             updateData.proof_document = uploadedFiles[0];
         }
-        
+
         const updatedAddress = await Address.findByIdAndUpdate(
-            id, 
-            updateData, 
+            id,
+            updateData,
             { new: true }
         );
-        
-        res.status(200).json({ 
-            message: "Address updated successfully", 
-            data: updatedAddress 
+
+        res.status(200).json({
+            message: "Address updated successfully",
+            data: updatedAddress
         });
     } catch (error) {
         console.error("Error updating address:", error);
@@ -134,9 +135,10 @@ export const updateAddress = async (req, res) => {
 export const getAddressById = async (req, res) => {
     try {
         const { user_id } = req.params;
+        console.log("user_id", user_id);
         // Simple find by ID without authentication check
         const addresses = await Address.find({ user: user_id });
-
+        console.log("addresses", addresses);
         if (!addresses || addresses.length === 0) {
             return res.status(404).json({ message: "No addresses found for this user" });
         }
@@ -152,9 +154,9 @@ export const getAddressById = async (req, res) => {
 export const getAllAddresses = async (req, res) => {
     try {
         const addresses = await Address.find({});
-        res.status(200).json({ 
-            message: "All addresses retrieved successfully", 
-            data: addresses 
+        res.status(200).json({
+            message: "All addresses retrieved successfully",
+            data: addresses
         });
     } catch (error) {
         console.error("Error fetching all addresses:", error);

@@ -20,7 +20,12 @@ const cartSchema = new Schema({
     },
     total_price: Number,
     start_time: Date,
-    end_time: Date
+    end_time: Date,
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+    }
 }, { timestamps: true });
 
 

@@ -1,6 +1,6 @@
 import Cart from "../models/cart.model.js";
 import { Product } from "../models/product.model.js";
-import {Insurance} from "../models/insurance.model.js";
+import { Insurance } from "../models/insurance.model.js";
 import Billing from "../models/billing.model.js";
 import mongoose from "mongoose";
 
@@ -9,7 +9,7 @@ export const createCart = async (req, res) => {
     try {
         const { userId, productId, quantity, insuranceId, start_time, end_time, total_price } = req.body;
 
-        console.log("req.body",req.body);
+        console.log("req.body", req.body);
 
         const cart = new Cart({
             userId,
@@ -31,25 +31,25 @@ export const createCart = async (req, res) => {
 };
 
 export const getCartbyuserid = async (req, res) => {
+
     try {
         const userId = new mongoose.Types.ObjectId(req.params.userId);
-        
-       
+
         const bookedBills = await Billing.find({}, 'cartIds');
         const bookedCartIds = bookedBills.reduce((acc, bill) => {
             return acc.concat(bill.cartIds);
         }, []);
-        
+
         const cartItems = await Cart.aggregate([
-            { 
-                $match: { 
+            {
+                $match: {
                     userId,
-                    
+
                     _id: { $nin: bookedCartIds }
-                } 
+                }
             },
 
-    
+
             {
                 $lookup: {
                     from: "products",
@@ -60,23 +60,23 @@ export const getCartbyuserid = async (req, res) => {
             },
             { $unwind: "$productDetails" },
 
-           
+
             {
                 $lookup: {
                     from: 'insurances',
-                    localField: "insuranceId", 
-                    foreignField: "_id", 
+                    localField: "insuranceId",
+                    foreignField: "_id",
                     as: "insuranceDetails"
                 }
             },
             {
                 $unwind: {
                     path: "$insuranceDetails",
-                    preserveNullAndEmptyArrays: true 
+                    preserveNullAndEmptyArrays: true
                 }
             },
 
-         
+
             {
                 $addFields: {
                     insurance: {
@@ -95,7 +95,7 @@ export const getCartbyuserid = async (req, res) => {
                 }
             },
 
-        
+
             {
                 $group: {
                     _id: "$userId",
@@ -115,11 +115,6 @@ export const getCartbyuserid = async (req, res) => {
         return res.status(500).json({ message: "Something went wrong... please try again later" });
     }
 };
-
-
-
-
-
 
 
 
@@ -148,7 +143,7 @@ export const updateCart = async (req, res) => {
             return res.status(404).json({ message: "Cart not found" });
         }
 
-       
+
         cart.quantity = quantity;
         await cart.save();
 
@@ -166,7 +161,7 @@ export const getCartById = async (req, res) => {
         if (!cart) {
             return res.status(404).json({ message: "Cart not found" });
         }
-        return res.json({ cart, user_id: cart.userid });
+        return res.json({ cart, user_id: cart.userId });
     } catch (err) {
         console.error("Error fetching cart:", err);
         return res.status(500).json({ message: "Something went wrong... please try again later" });
@@ -177,23 +172,23 @@ export const getCartById = async (req, res) => {
 export const getAllCartCountnyuserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        
+
         // Get all billing records and extract all cartIds from the cartIds array
         const bookedBills = await Billing.find({}, 'cartIds');
         const bookedCartIds = bookedBills.reduce((acc, bill) => {
             return acc.concat(bill.cartIds);
         }, []);
-        
+
         // Find cart items that are not in billing records
-        const cartItems = await Cart.find({ 
+        const cartItems = await Cart.find({
             userId: userId,
             _id: { $nin: bookedCartIds }
         });
-        
+
         if (!cartItems || cartItems.length === 0) {
             return res.status(200).json({ count: 0 });
         }
-        
+
         return res.json({ count: cartItems.length });
     } catch (err) {
         console.error("Error fetching cart count:", err);

@@ -26,7 +26,7 @@ export const getInsurancePlanIdsByUserId = async (req, res) => {
 
     const insurancePlans = await Insurance.find(
       { userId, is_active: true },
-      { userId,_id: 1,plan_name:1,description:1,price:1,features:1 } 
+      { userId, _id: 1, plan_name: 1, description: 1, price: 1, features: 1 }
     );
 
     if (!insurancePlans.length) {
@@ -36,20 +36,20 @@ export const getInsurancePlanIdsByUserId = async (req, res) => {
       });
     }
 
-    
+
     const insurancePlansData = insurancePlans.map(plan => ({
-      userId:userId,
+      userId: userId,
       plan_id: plan._id,
       plan_name: plan.plan_name,
       description: plan.description,
       price: plan.price,
       features: plan.features,
     }));
-  
+
 
     return res.status(200).json({
       success: true,
-      insurancePlans:insurancePlansData
+      insurancePlans: insurancePlansData
     });
   } catch (error) {
     console.error("Error fetching insurance plan IDs:", error);
@@ -65,6 +65,7 @@ export const getInsurancePlanIdsByUserId = async (req, res) => {
 export const createInsurancePlan = async (req, res) => {
   try {
     const { userId, plan_name, description, price, features } = req.body;
+    console.log("req.body", req.body);
 
     if (!userId || !plan_name || !description || !price) {
       return res.status(400).json({
@@ -160,7 +161,7 @@ export const deleteInsurancePlan = async (req, res) => {
   try {
     const { id } = req.params;
 
-    
+
     const insurancePlan = await Insurance.findByIdAndUpdate(
       id,
       { is_active: false },
