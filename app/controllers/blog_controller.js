@@ -44,7 +44,6 @@ export const createBlog = async (req, res) => {
     }
     const { title, description } = req.body;
 
-    // console.log("add data", req.body);
     try {
         if (!req.file) {
             return res.status(400).json({ message: "Please add image" })
@@ -71,7 +70,6 @@ export const createBlog = async (req, res) => {
 }
 
 export const editBlog = async (req, res) => {
-    console.log("update blog")
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
@@ -114,8 +112,6 @@ export const editBlog = async (req, res) => {
 export const deleteBlog = async (req, res) => {
     try {
         const id = req.params.id;
-
-        console.log(`Deleting Blog with ID : `, id)
 
         const deleteBlog = await Blog.findByIdAndDelete(id)
 
