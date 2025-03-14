@@ -110,7 +110,7 @@ export const updateOrderAcceptance = async (req, res) => {
         if (!cartProduct) {
             return res.status(404).json({ message: "No order found" });
         }
-        if (productId.user !== req.user._id) {
+        if (productId.user !== req.body.id) {
             return res.status(403).json({ message: "You are not authorized to update this order" });
         }
         const updateOrder = await Cart.findByIdAndUpdate(id, { status: status }, { new: true, upsert: true });
