@@ -113,7 +113,7 @@ export const updateOrderAcceptance = async (req, res) => {
         if (productId.user !== req.body.id) {
             return res.status(403).json({ message: "You are not authorized to update this order" });
         }
-        const updateOrder = await Cart.findByIdAndUpdate(id, { status: status }, { new: true, upsert: true });
+        const updateOrder = await Cart.findByIdAndUpdate(id, { status: status }, { new: true });
         return res.json({ updateOrder, message: "Order updated successfully" });
     } catch (err) {
         res.status(500).json({ message: "Something went wrong... please try again later" });
