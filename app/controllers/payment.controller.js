@@ -3,28 +3,38 @@ import { BankDetails } from '../models/bank-details.model.js';
 import { Payment } from '../models/payment.model.js';
 import { Order } from '../models/order.model.js';
 import mongoose from 'mongoose';
+import Cart from '../models/cart.model.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createPaymentSession = async (req, res) => {
+    console.log(req.body);
     try {
-        const { orderId } = req.body;
+        const { cartId } = req.body;
 
-        if (!orderId) {
-            return res.status(400).json({ message: 'Order ID is required' });
+        if (!cartId) {
+            return res.status(400).json({ message: 'Cart ID is required' });
         }
 
-        // Find order
-        const order = await Order.findById(orderId).populate('product').populate('billing');
+        const cart_id = new mongoose.Types.ObjectId(cartId)
+        // Find the order by cartId and populate relevant fields
+        const order = await Order.findOne({ cartId: cart_id })
+            .populate('product')
+            .populate('billing');
+
+        // Log the order to check if it's null
+        console.log('Order found:', order);
+
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
+        // Check if the order status is already 'completed'
         if (order.status === 'completed') {
             return res.status(400).json({ message: 'Payment already completed' });
         }
 
-        // Create Stripe checkout session
+        // Create a Stripe session for payment
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -40,19 +50,22 @@ export const createPaymentSession = async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.CLIENT_URL}/payment-success?orderId=${orderId}&sessionId={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+            success_url: `${process.env.CLIENT_URL}/success?cartId=${cartId}&sessionId={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/cancel`,
         });
 
-        // Create payment record with "pending" status
+        // Create a new payment record with the session ID and other details
         const payment = new Payment({
             transaction_id: session.id,
             amount: order.amount,
             status: 'pending',
-            customer: order.userId,
+            customer: order.renter,
+            cartId,
         });
+
         await payment.save();
 
+        // Send back the session ID and payment URL
         res.status(200).json({ sessionId: session.id, url: session.url });
     } catch (error) {
         console.error('Error creating payment session:', error);
@@ -62,47 +75,76 @@ export const createPaymentSession = async (req, res) => {
 
 export const handlePaymentSuccess = async (req, res) => {
     try {
-        const { orderId, sessionId } = req.body;
+        const { cartId, sessionId, userId } = req.body;
 
-        if (!orderId || !sessionId) {
-            return res.status(400).json({ message: 'Order ID and Session ID are required' });
+        // Check if cartId and sessionId are provided
+        if (!cartId || !sessionId) {
+            return res.status(400).json({ message: 'Cart ID and Session ID are required' });
         }
 
+        // Cast cartId, sessionId, and userId to ObjectId types
+        const cartObjectId = mongoose.Types.ObjectId(cartId);
+        const userObjectId = mongoose.Types.ObjectId(userId);
+
+        // Retrieve the session from Stripe API
         const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        // Check if the payment is completed
         if (session.payment_status !== 'paid') {
             return res.status(400).json({ message: 'Payment not completed' });
         }
 
+        // Check if the payment has already been processed
         const existingPayment = await Payment.findOne({ transaction_id: session.payment_intent });
         if (existingPayment) {
             return res.status(400).json({ message: 'Payment already processed' });
         }
 
+        // Find the order based on the cartId
+        const order = await Order.findOne({ cartId: cartObjectId });
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Create a new payment record
         const payment = new Payment({
             type: session.payment_method_types.includes('card') ? 'Credit' : 'Debit',
             transaction_id: session.payment_intent,
-            amount: session.amount_total / 100,
+            amount: session.amount_total / 100,  // Convert amount from cents to dollars
             status: 'successful',
-            customer: req.body.userId,
-            order_id: orderId,
+            customer: userObjectId,
+            cartId: cartObjectId,
         });
+
+        // Save the payment record
         await payment.save();
 
-        const updatedOrder = await Order.findByIdAndUpdate(orderId, {
-            transaction_id: payment.transaction_id,
-            status: 'completed',
-        }, { new: true });
+        // Update the order status to 'completed'
+        const updatedOrder = await Order.findOneAndUpdate(
+            { cartId: cartObjectId },
+            {
+                transaction_id: payment.transaction_id,
+                status: 'completed',
+            },
+            { new: true }
+        );
 
+        // Update the cart to mark payment as 'completed'
+        await Cart.findByIdAndUpdate({ _id: cartObjectId }, { payment: 'completed' }, { new: true });
+
+        // If the order is not found or not updated
         if (!updatedOrder) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
+        // Return the success response
         res.status(200).json({ message: 'Payment successful', order: updatedOrder, payment });
     } catch (error) {
         console.error('Error handling payment success:', error);
         res.status(500).json({ message: 'Failed to process payment success' });
     }
 };
+
 
 export const processPayout = async (req, res) => {
     try {

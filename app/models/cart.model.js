@@ -25,6 +25,10 @@ const cartSchema = new Schema({
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending',
+    },
+    payment: {
+        type: String,
+        default: 'pending',
     }
 }, { timestamps: true });
 

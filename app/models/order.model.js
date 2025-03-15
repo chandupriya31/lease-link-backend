@@ -29,7 +29,8 @@ const orderSchema = new Schema({
     payout: {
         type: String,
         default: 'pending'
-    }
+    },
+    cartId: String
 }, { timestamps: true });
 
 export const Order = model('Order', orderSchema);

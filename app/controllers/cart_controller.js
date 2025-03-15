@@ -33,6 +33,7 @@ export const createCart = async (req, res) => {
 export const getCartbyuserid = async (req, res) => {
 
     try {
+        console.log(req.params, 'params')
         const userId = new mongoose.Types.ObjectId(req.params.userId);
 
         const bookedBills = await Billing.find({}, 'cartIds');

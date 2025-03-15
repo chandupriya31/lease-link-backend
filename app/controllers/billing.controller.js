@@ -6,6 +6,7 @@ import { Order } from "../models/order.model.js";
 export const createBill = async (req, res) => {
     try {
         const { user, addressId, cartIds } = req.body;
+        console.log('inside', req.body)
 
         if (!user || !addressId || !cartIds || !Array.isArray(cartIds) || cartIds.length === 0) {
             return res.status(400).json({ message: "Required fields are missing or invalid" });
@@ -55,7 +56,7 @@ export const getCartData = async (req, res) => {
 export const getRequestedOrders = async (req, res) => {
     try {
         const user_id = new mongoose.Types.ObjectId(req.params.user_id);
-
+        console.log(user_id, 'user')
         const requestedOrders = await Billing.find({ 'cartIds': { $exists: true } })
             .populate({
                 path: 'cartIds',
@@ -75,7 +76,7 @@ export const getRequestedOrders = async (req, res) => {
                 select: 'name email'
             })
             .lean();
-
+        console.log(requestedOrders, 'requested')
         const filteredOrders = requestedOrders
             .map(billing => ({
                 ...billing,
@@ -89,7 +90,7 @@ export const getRequestedOrders = async (req, res) => {
         if (filteredOrders.length === 0) {
             return res.status(404).json({ message: "No rental requests found for your products" });
         }
-
+        console.log('filtered', filteredOrders)
         res.status(200).json({
             message: "Requested orders retrieved successfully",
             data: filteredOrders
@@ -129,9 +130,10 @@ export const updateOrderAcceptance = async (req, res) => {
                     product: cartProduct.productId,
                     billing: billing._id,
                     transaction_id: null,
-                    amount: cartProduct.total_price
+                    amount: cartProduct.total_price,
+                    cartId
                 };
-
+                console.log('new', newOrder)
                 await Order.create(newOrder);
             }
         }
