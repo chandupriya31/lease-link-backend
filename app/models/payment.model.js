@@ -11,7 +11,11 @@ const paymentSchema = new Schema({
     status: {
         type: String,
         default: "pending"
-    }
+    },
+    order_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'Order'
+    },
 }, { timestamps: true });
 
 export const Payment = model('Payment', paymentSchema);

@@ -24,6 +24,11 @@ const orderSchema = new Schema({
     transaction_id: {
         type: String,
         ref: 'Payment'
+    },
+    amount: Number,
+    payout: {
+        type: String,
+        default: 'pending'
     }
 }, { timestamps: true });
 

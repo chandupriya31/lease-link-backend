@@ -1,14 +1,17 @@
 import express from 'express';
-
-import { confirmPayment, createPaymentSession, refundPayment } from '../app/controllers/payment.controller.js';
-import { authenticateUser } from '../app/middlewares/auth_middlewares.js';
+import { createPaymentSession, getStripeAccountDetails, handlePaymentSuccess, processPayout } from '../app/controllers/payment.controller.js';
 
 const router = express.Router();
 
-router.post('/create', authenticateUser, createPaymentSession);
+// Create payment session
+router.post('/create', createPaymentSession);
 
-router.post('/confirm-payment', authenticateUser, confirmPayment);
+// Handle payment success
+router.post('/payment-success', handlePaymentSuccess);
 
-router.post('/refund', authenticateUser, refundPayment);
+// Process payout
+router.post('/process-payout', processPayout);
+
+router.get('/stripe-account/:userId', getStripeAccountDetails);
 
 export default router;

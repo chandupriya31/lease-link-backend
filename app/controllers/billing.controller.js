@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import Billing from "../models/billing.model.js";
 import Cart from "../models/cart.model.js";
+import { Order } from "../models/order.model.js";
 
 export const createBill = async (req, res) => {
     try {
         const { user, addressId, cartIds } = req.body;
 
-        // Check if all required fields are provided
         if (!user || !addressId || !cartIds || !Array.isArray(cartIds) || cartIds.length === 0) {
             return res.status(400).json({ message: "Required fields are missing or invalid" });
         }
@@ -32,8 +32,8 @@ export const getCartData = async (req, res) => {
             .populate({
                 path: 'cartIds',
                 populate: [
-                    { path: 'productId', populate: { path: 'user', select: 'name email' } }, // Populate product details and owner info
-                    { path: 'insuranceId', select: 'name' } // Populate insurance details
+                    { path: 'productId', populate: { path: 'user', select: 'name email' } },
+                    { path: 'insuranceId', select: 'name' }
                 ]
             })
             .lean();
@@ -76,13 +76,12 @@ export const getRequestedOrders = async (req, res) => {
             })
             .lean();
 
-        // ✅ Filter out products where productId or productId.selected_insurance is null
         const filteredOrders = requestedOrders
             .map(billing => ({
                 ...billing,
                 cartIds: billing.cartIds.filter(cart =>
                     cart.productId !== null &&
-                    cart.productId.selected_insurance !== null // Ensure selected_insurance exists inside productId
+                    cart.productId.selected_insurance !== null
                 )
             }))
             .filter(billing => billing.cartIds.length > 0);
@@ -103,19 +102,46 @@ export const getRequestedOrders = async (req, res) => {
 
 
 export const updateOrderAcceptance = async (req, res) => {
-    const { id } = req.params;
-    const status = req.body.status;
+    const { cartId, status, userId } = req.body;
     try {
-        const cartProduct = await Cart.findById(id).populate("productId");
+        const cartProduct = await Cart.findById(cartId).populate("productId");
         if (!cartProduct) {
             return res.status(404).json({ message: "No order found" });
         }
-        if (productId.user !== req.body.id) {
+        const productId = cartProduct.productId;
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        if (!productId.user.equals(userObjectId)) {
             return res.status(403).json({ message: "You are not authorized to update this order" });
         }
-        const updateOrder = await Cart.findByIdAndUpdate(id, { status: status }, { new: true });
-        return res.json({ updateOrder, message: "Order updated successfully" });
+
+        if (status === "accepted") {
+            const billing = await Billing.findOne({ user: cartProduct.userId });
+            if (!billing) {
+                return res.status(404).json({ message: "Billing details not found" });
+            }
+
+            const existingOrder = await Order.findOne({ product: cartProduct.productId });
+            if (!existingOrder) {
+                const newOrder = {
+                    renter: cartProduct.userId,
+                    lender: productId.user,
+                    product: cartProduct.productId,
+                    billing: billing._id,
+                    transaction_id: null,
+                    amount: cartProduct.total_price
+                };
+
+                await Order.create(newOrder);
+            }
+        }
+        const updatedOrder = await Cart.findByIdAndUpdate(
+            cartId,
+            { status },
+            { new: true }
+        );
+        return res.json({ updatedOrder, message: "Order updated successfully" });
     } catch (err) {
         res.status(500).json({ message: "Something went wrong... please try again later" });
     }
-}
+};

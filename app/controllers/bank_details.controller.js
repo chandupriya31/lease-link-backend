@@ -1,26 +1,51 @@
+import Stripe from 'stripe';
 import { BankDetails } from "../models/bank-details.model.js";
-import { authenticateUser } from "../middlewares/auth_middlewares.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const addBankDetails = async (req, res) => {
     try {
-        const {userId, accountHolderName, accountNumber, sortCode, bankName, bankAddress, wallet } = req.body;
+        const { userId, accountHolderName, accountNumber, sortCode, bankName, bankAddress, wallet, email, country } = req.body;
 
-        if (!accountHolderName || !accountNumber || !sortCode || !bankName || !bankAddress) {
-            return res.status(400).json({ success: false, message: "Please add the required data" });
+        if (!accountHolderName || !accountNumber || !sortCode || !bankName || !bankAddress || !email || !country) {
+            return res.status(400).json({ success: false, message: 'Please add the required data' });
         }
-        let bankDetails = {
+
+        const account = await stripe.accounts.create({
+            type: 'express',
+            country,
+            email,
+            capabilities: {
+                transfers: { requested: true },
+                card_payments: { requested: true }
+            }
+        });
+
+        console.log(`Connected account created: ${account.id}`);
+
+        const bankDetails = await BankDetails.create({
             userId,
             accountHolderName,
             accountNumber,
             sortCode,
             bankName,
             bankAddress,
-            wallet
-        };
-        await BankDetails.create(bankDetails);
-        res.status(201).json({ success: true, message: "Bank details created successfully" });
+            wallet: wallet || 0,
+            stripeAccountId: account.id
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Bank details created successfully',
+            bankDetails
+        });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Something went wrong... please try again later', error: err.message });
+        console.error('Error creating bank details:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Something went wrong... please try again later',
+            error: err.message
+        });
     }
 };
 
@@ -34,7 +59,7 @@ export const getDetails = async (req, res) => {
 
         // Query the database
         const bankDetails = await BankDetails.find({ userId });
-         console.log(bankDetails);
+        console.log(bankDetails);
         // Check if user exists
         if (!bankDetails) {
             return res.status(404).json({ success: false, message: "User not found" });

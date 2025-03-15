@@ -1,90 +1,141 @@
-// import Stripe from 'stripe';
+import Stripe from 'stripe';
+import { BankDetails } from '../models/bank-details.model.js';
 import { Payment } from '../models/payment.model.js';
 import { Order } from '../models/order.model.js';
-import { Product } from '../models/product.model.js';
-import Cart from '../models/cart.model.js';
+import mongoose from 'mongoose';
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createPaymentSession = async (req, res) => {
-    const { cartId } = req.body;
-    if (!cartId) {
-        return res.status(400).json({ message: 'Cart ID and amount are required' });
-    }
-    const cart = await Cart.findById(cartId);
-    const amount = cart.total_price;
-    if (!cart) {
-        return res.status(404).json({ message: 'Cart not found' });
-    }
-    const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-            {
-                price_data: {
-                    currency: 'inr',
-                    product_data: {
-                        name: 'Product Rental'
+    try {
+        const { orderId } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ message: 'Order ID is required' });
+        }
+
+        // Find order
+        const order = await Order.findById(orderId).populate('product').populate('billing');
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        if (order.status === 'completed') {
+            return res.status(400).json({ message: 'Payment already completed' });
+        }
+
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'inr',
+                        product_data: {
+                            name: order.product.name,
+                        },
+                        unit_amount: order.amount * 100,
                     },
-                    unit_amount: amount * 100
+                    quantity: 1,
                 },
-                quantity: 1
-            }
-        ],
-        mode: 'payment',
-        success_url: `${process.env.CLIENT_URL}/success`,
-        cancel_url: `${process.env.CLIENT_URL}/cancel`
-    });
+            ],
+            mode: 'payment',
+            success_url: `${process.env.CLIENT_URL}/payment-success?orderId=${orderId}&sessionId={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+        });
 
-    const payment = await Payment.create({
-        type: 'Credit',
-        transaction_id: session.id,
-        amount,
-        status: 'pending'
-    });
+        // Create payment record with "pending" status
+        const payment = new Payment({
+            transaction_id: session.id,
+            amount: order.amount,
+            status: 'pending',
+            customer: order.userId,
+        });
+        await payment.save();
 
-    const order = await Order.create({
-        renter: cart.userId,
-        // lender: lenderId,
-        product: cart.productId,
-        billing: payment._id,
-        transaction_id: session.id,
-        status: 'pending'
-    });
-
-    res.json({ sessionId: session.id, url: session.url, order });
+        res.status(200).json({ sessionId: session.id, url: session.url });
+    } catch (error) {
+        console.error('Error creating payment session:', error);
+        res.status(500).json({ message: 'Failed to create payment session' });
+    }
 };
 
-
-export const confirmPayment = async (req, res) => {
+export const handlePaymentSuccess = async (req, res) => {
     try {
-        const { sessionId } = req.body;
+        const { orderId, sessionId } = req.body;
+
+        if (!orderId || !sessionId) {
+            return res.status(400).json({ message: 'Order ID and Session ID are required' });
+        }
+
         const session = await stripe.checkout.sessions.retrieve(sessionId);
         if (session.payment_status !== 'paid') {
             return res.status(400).json({ message: 'Payment not completed' });
         }
 
-        const payment = await Payment.findOneAndUpdate(
-            { transaction_id: sessionId },
-            { status: 'completed' },
-            { new: true }
-        );
-
-        if (!payment) {
-            return res.status(404).json({ message: 'Payment record not found' });
+        const existingPayment = await Payment.findOne({ transaction_id: session.payment_intent });
+        if (existingPayment) {
+            return res.status(400).json({ message: 'Payment already processed' });
         }
 
-        const order = await Order.findOneAndUpdate(
-            { transaction_id: sessionId },
-            { status: 'completed' }
-        );
+        const payment = new Payment({
+            type: session.payment_method_types.includes('card') ? 'Credit' : 'Debit',
+            transaction_id: session.payment_intent,
+            amount: session.amount_total / 100,
+            status: 'successful',
+            customer: req.body.userId,
+            order_id: orderId,
+        });
+        await payment.save();
 
+        const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+            transaction_id: payment.transaction_id,
+            status: 'completed',
+        }, { new: true });
+
+        if (!updatedOrder) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json({ message: 'Payment successful', order: updatedOrder, payment });
+    } catch (error) {
+        console.error('Error handling payment success:', error);
+        res.status(500).json({ message: 'Failed to process payment success' });
+    }
+};
+
+export const processPayout = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ message: 'Order ID is required' });
+        }
+
+        const order = await Order.findById(orderId).populate('product');
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        const lenderBank = await BankDetails.findOne({ userId: order.lender });
-        if (!lenderBank) {
+        if (order.payoutStatus === 'completed') {
+            return res.status(400).json({ message: 'Payout already processed' });
+        }
+
+        const payment = await Payment.findOne({ transaction_id: order.transaction_id });
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment record not found' });
+        }
+
+        const lenderId = new mongoose.Types.ObjectId(order.lender);
+        const lenderBank = await BankDetails.findOne({ userId: lenderId });
+
+        if (!lenderBank || !lenderBank.stripeAccountId) {
             return res.status(404).json({ message: 'Lender bank details not found' });
+        }
+
+        const account = await stripe.accounts.retrieve(lenderBank.stripeAccountId);
+        if (account.capabilities.transfers !== 'active') {
+            return res.status(400).json({ message: 'Lender account is not enabled for transfers' });
         }
 
         const totalAmount = payment.amount;
@@ -95,46 +146,53 @@ export const confirmPayment = async (req, res) => {
         console.log(`Commission (5%): ₹${commission}`);
         console.log(`Payout Amount: ₹${payoutAmount}`);
 
-        // Create Stripe payout
-        const payout = await stripe.transfers.create({
-            amount: payoutAmount * 100,
+        const transfer = await stripe.transfers.create({
+            amount: Math.round(payoutAmount * 100),
             currency: 'inr',
-            destination: lenderBank.accountNumber,
+            destination: lenderBank.stripeAccountId,
             description: `Payout for Order #${order._id}`,
         });
 
-        console.log(`Payout successful: ₹${payoutAmount}`);
+        order.payoutStatus = 'completed';
+        await order.save();
 
         lenderBank.wallet += payoutAmount;
         await lenderBank.save();
 
-        console.log(`Lender wallet updated: ₹${payoutAmount}`);
+        console.log(`Payout successful: ₹${payoutAmount}`);
 
-        res.status(200).json({ message: 'Payment confirmed and payout sent', payoutAmount });
-    } catch (error) {
-        console.error('Error confirming payment:', error);
-        res.status(500).json({ message: 'Failed to confirm payment' });
-    }
-};
-
-export const refundPayment = async (req, res) => {
-    try {
-        const { paymentId } = req.body;
-
-        const payment = await Payment.findById(paymentId);
-        if (!payment) return res.status(404).json({ message: 'Payment not found' });
-
-        const refund = await stripe.refunds.create({
-            payment_intent: payment.transaction_id
+        res.status(200).json({
+            message: 'Payout successful',
+            payoutAmount,
+            transferId: transfer.id,
         });
-
-        payment.status = 'refunded';
-        await payment.save();
-
-        res.status(200).json({ message: 'Payment refunded successfully', refund });
     } catch (error) {
-        console.error('Error processing refund:', error);
-        res.status(500).json({ message: 'Failed to refund payment' });
+        console.error('Error processing payout:', error);
+
+        // ✅ Improved error handling for Stripe-specific errors
+        if (error.type === 'StripeInvalidRequestError') {
+            return res.status(400).json({ message: error.message });
+        }
+
+        res.status(500).json({ message: 'Failed to process payout', error: error.message });
     }
 };
 
+
+export const getStripeAccountDetails = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const bankDetails = await BankDetails.findOne({ userId });
+        if (!bankDetails || !bankDetails.stripeAccountId) {
+            return res.status(404).json({ message: 'Stripe account not connected' });
+        }
+
+        const account = await stripe.accounts.retrieve(bankDetails.stripeAccountId);
+
+        res.status(200).json({ account });
+    } catch (error) {
+        console.error('Error retrieving Stripe account details:', error);
+        res.status(500).json({ message: 'Failed to retrieve Stripe account details' });
+    }
+};

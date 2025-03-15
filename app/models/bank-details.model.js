@@ -4,7 +4,7 @@ const bankDetailsSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true // Ensure every bank detail entry is linked to a user
+        required: true,
     },
     accountHolderName: {
         type: String,
@@ -18,7 +18,7 @@ const bankDetailsSchema = new Schema({
         trim: true,
         validate: {
             validator: function (v) {
-                return /^\d{8}$/.test(v); // Ensures exactly 8-digit numbers
+                return /^\d{8}$/.test(v);
             },
             message: 'Account number must be 8 digits'
         }
@@ -28,7 +28,7 @@ const bankDetailsSchema = new Schema({
         required: true,
         validate: {
             validator: function (v) {
-                return /^\d{2}-\d{2}-\d{2}$/.test(v); // Ensures XX-XX-XX format
+                return /^\d{2}-\d{2}-\d{2}$/.test(v);
             },
             message: 'Sort code must be in format XX-XX-XX'
         }
@@ -44,10 +44,14 @@ const bankDetailsSchema = new Schema({
         trim: true
     },
     wallet: {
-        type: Number,  // Changed from String to Number
+        type: Number,
         required: false,
-        default: 0,  // Defaulting wallet balance to 0
-        min: 0        // Ensures wallet balance can't be negative
+        default: 0,
+        min: 0
+    },
+    stripeAccountId: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true
