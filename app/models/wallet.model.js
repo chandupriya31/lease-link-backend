@@ -5,13 +5,13 @@ const walletSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-        unique: true // Each user has only one wallet
+        unique: true 
     },
     balance: {
         type: Number,
         required: true,
-        default: 0, // Default balance starts at 0
-        min: 0      // Prevents negative balances
+        default: 0, 
+        min: 0    
     },
     transactions: [
         {
@@ -21,7 +21,7 @@ const walletSchema = new Schema({
             },
             type: {
                 type: String,
-                enum: ['credit', 'debit'], // Ensures valid transaction types
+                enum: ['credit', 'debit'], 
                 required: true
             },
             description: {
@@ -30,7 +30,7 @@ const walletSchema = new Schema({
             },
             timestamp: {
                 type: Date,
-                default: Date.now // Auto-assign current timestamp
+                default: Date.now 
             }
         }
     ]
