@@ -148,7 +148,7 @@ export const getAddressById = async (req, res) => {
     }
 };
 
-
+//get addresses 
 export const getAllAddresses = async (req, res) => {
     try {
         const addresses = await Address.find({});
@@ -161,3 +161,5 @@ export const getAllAddresses = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
