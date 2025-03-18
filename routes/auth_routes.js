@@ -14,9 +14,6 @@ import { authenticateUser } from "../app/middlewares/auth_middlewares.js";
 const router = express.Router();
 
 
-
-
-
 // Public routes updated 
 router.post("/register", registerUser);
 router.post("/login", loginUser);

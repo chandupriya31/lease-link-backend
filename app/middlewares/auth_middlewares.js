@@ -34,7 +34,6 @@ export const authenticateUser = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-      // Get user from database
       const user = await User.findById(decoded._id || decoded.id).select("-password");
 
       if (!user) {
