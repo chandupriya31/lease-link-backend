@@ -1,6 +1,8 @@
 import {validationResult} from "express-validator"
 import { FAQ } from "../models/faq.model.js"
 
+//faq
+
 export const getAllFAQS=async(req,res)=>{
     try{
         const faqLists=await FAQ.find()
