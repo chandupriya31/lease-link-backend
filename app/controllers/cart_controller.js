@@ -174,13 +174,13 @@ export const getAllCartCountnyuserId = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Get all billing records and extract all cartIds from the cartIds array
+        
         const bookedBills = await Billing.find({}, 'cartIds');
         const bookedCartIds = bookedBills.reduce((acc, bill) => {
             return acc.concat(bill.cartIds);
         }, []);
 
-        // Find cart items that are not in billing records
+        
         const cartItems = await Cart.find({
             userId: userId,
             _id: { $nin: bookedCartIds }

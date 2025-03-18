@@ -52,7 +52,7 @@ export const authenticateUser = async (req, res, next) => {
         });
       }
 
-      // Set user in request
+      
       req.user = user;
       next();
     } catch (error) {

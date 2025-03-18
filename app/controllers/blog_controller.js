@@ -85,10 +85,10 @@ export const editBlog = async (req, res) => {
                     return res.status(404).json({ message: "Blog not found with that ID" });
                 }
         
-                // Handle file upload if a new image is provided
+               
                 if (req.file) {
-                    const imageUrl = await uploadToS3(req.file); // Upload image to S3
-                    updates.image = imageUrl; // Add image URL to updates
+                    const imageUrl = await uploadToS3(req.file); 
+                    updates.image = imageUrl; 
                 }
 
         const updatedBlog = await Blog.findByIdAndUpdate(id, updates, { new: true })
