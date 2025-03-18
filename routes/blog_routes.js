@@ -12,4 +12,5 @@ router.get("/:id", getBlogById)
 router.get("/", getAllBlogs)
 router.put("/:id", authenticateUser, isAuthorizedUser, upload.single('image'), checkSchema(blogValidator), editBlog)
 router.delete("/:id", deleteBlog)
-export default router
+
+export default router;
