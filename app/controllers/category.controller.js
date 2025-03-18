@@ -5,8 +5,7 @@ export const getAllCategories = async (req, res) => {
 
   try {
     const categories = await Category.find({ isActive: true });
-    // console.log(`Found ${categories.length} active categories`);
-
+    
     return res.status(200).json({
       success: true,
       categories,
@@ -21,13 +20,13 @@ export const getAllCategories = async (req, res) => {
   }
 };
 
-// Get a single category by ID
+
 export const getCategoryById = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("Getting category with ID:", id);
 
-    // Find the category and make sure it's active
+    
     const category = await Category.findOne({ _id: id, isActive: true });
 
     if (!category) {
@@ -50,24 +49,24 @@ export const getCategoryById = async (req, res) => {
   }
 };
 
-// Create a new category
+
 export const createCategory = async (req, res) => {
   try {
     const { name, description, icon } = req.body;
 
-    // Validate required fields
+    
     if (!name) {
       return res.status(400).json({
         message: "Please provide category name",
       });
     }
 
-    // Check if category already exists
+    
     const existingCategory = await Category.findOne({ name });
     console.log("existingCategory", existingCategory);
 
     if (existingCategory) {
-      // If it exists but is inactive, reactivate it instead of creating new
+     
       if (!existingCategory.isActive) {
         existingCategory.isActive = true;
         existingCategory.description =
@@ -83,13 +82,13 @@ export const createCategory = async (req, res) => {
         });
       }
 
-      // If it's already active, return error
+     
       return res
         .status(400)
         .json({ message: "Category with this name already exists" });
     }
 
-    // Create new category
+    
     const category = await Category.create({
       name,
       description,
@@ -109,7 +108,7 @@ export const createCategory = async (req, res) => {
   }
 };
 
-// Update a category
+
 export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
@@ -138,13 +137,13 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete a category (soft delete)
+
 export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("Deleting category with ID:", id);
 
-    // Find the category by ID and set isActive to false (soft delete)
+    
     const category = await Category.findByIdAndUpdate(
       id,
       { isActive: false },

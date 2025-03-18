@@ -52,15 +52,15 @@ export const addBankDetails = async (req, res) => {
 export const getDetails = async (req, res) => {
     try {
         const { userId } = req.params;
-        // Check if userId is a valid MongoDB ObjectId
+        
         if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ success: false, message: "Invalid user ID format" });
         }
 
-        // Query the database
+        
         const bankDetails = await BankDetails.find({ userId });
         console.log(bankDetails);
-        // Check if user exists
+        
         if (!bankDetails) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
@@ -120,9 +120,8 @@ export const deleteBankDetails = async (req, res) => {
 
 export const getWalletamount = async (req, res) => {
     try {
-        const userId = req.userId; // Get userId from the request object (added by middleware)
-
-        // Fetch the document for the logged-in user
+        const userId = req.userId; 
+        
         const bankDetails = await BankDetails.findOne({ userId });
 
         if (!bankDetails) {

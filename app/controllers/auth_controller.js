@@ -6,19 +6,19 @@ import sendResetPasswordRequest from "../../emails/send_reset_password_req.js";
 import sendResetPasswordConfirmation from "../../emails/send_reset_password_confirmation.js";
 import generateRandomPassword from "../helpers/generate_random_otp.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs"; // Fixing the bcrypt import
+import bcrypt from "bcryptjs"; 
 
 export const registerUser = async (req, res) => {
     try {
         const { name, email, phone_number } = req.body;
-        // Validate required fields
+        
         if (!email) {
             return res
                 .status(400)
                 .json({ success: false, message: "Email is required" });
         }
 
-        // Check if user already exists
+        
         const existedUser = await User.findOne({ email });
         if (existedUser) {
             return res
@@ -29,10 +29,10 @@ export const registerUser = async (req, res) => {
                 });
         }
 
-        // Generate OTP for email verification
+        
         const otp = generateOtp();
 
-        // Create user
+        
         const user = await User.create({
             name,
             email,
@@ -71,7 +71,7 @@ export const otpVerification = async (req, res) => {
         const { email, otp } = req.body;
         console.log("OTP Verification:", { email, otp });
 
-        // Validate required fields
+       
         if (!email || !otp) {
             return res
                 .status(400)
@@ -81,7 +81,7 @@ export const otpVerification = async (req, res) => {
                 });
         }
 
-        // Find user by email
+      
         const user = await User.findOne({ email });
         if (!user) {
             return res
@@ -89,23 +89,22 @@ export const otpVerification = async (req, res) => {
                 .json({ success: false, message: "User not found" });
         }
 
-        // Check if OTP matches
+       
         if (user.otp != otp) {
             return res
                 .status(400)
                 .json({ success: false, message: "Invalid OTP" });
         }
 
-        // Generate a random password - DO NOT hash it here, the pre-save hook will hash it
+        
         const password = generateRandomPassword();
 
-        // Update user - set as verified and save password
         user.isValid = true;
-        user.password = password; // This will be hashed by the pre-save hook
+        user.password = password;
         user.otp = undefined;
         await user.save();
 
-        // Send credentials email
+        
         const credentialResponse = await sendUserCredential(email, password);
         if (!credentialResponse.success) {
             return res
@@ -116,7 +115,7 @@ export const otpVerification = async (req, res) => {
                 });
         }
 
-        // Return success response
+        
         return res.status(200).json({
             success: true,
             message: "OTP verified successfully. Check email for credentials.",
@@ -198,14 +197,14 @@ export const resendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // Validate required fields
+       
         if (!email) {
             return res
                 .status(400)
                 .json({ success: false, message: "Email is required" });
         }
 
-        // Find user by email
+        
         const user = await User.findOne({ email });
         if (!user) {
             return res
@@ -213,7 +212,7 @@ export const resendOtp = async (req, res) => {
                 .json({ success: false, message: "User not found" });
         }
 
-        // Check if user account is already verified
+        
         if (user.isValid) {
             return res
                 .status(400)
@@ -223,14 +222,13 @@ export const resendOtp = async (req, res) => {
                 });
         }
 
-        // Generate new OTP
         const otp = generateOtp();
 
-        // Update user
+        
         user.otp = otp;
         await user.save();
 
-        // Send OTP email
+        
         const response = await sendOtpForValidation(email, otp);
         if (!response.success) {
             return res
@@ -241,7 +239,7 @@ export const resendOtp = async (req, res) => {
                 });
         }
 
-        // Return success response
+       
         return res
             .status(200)
             .json({ success: true, message: "OTP sent for verification" });
@@ -260,14 +258,14 @@ export const forgotPasswordisEmailExist = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // Validate required fields
+      
         if (!email) {
             return res
                 .status(400)
                 .json({ success: false, message: "Email is required" });
         }
 
-        // Find user by email
+       
         const user = await User.findOne({ email });
         if (!user) {
             return res
@@ -275,7 +273,7 @@ export const forgotPasswordisEmailExist = async (req, res) => {
                 .json({ success: false, message: "User not found" });
         }
 
-        // Check if user account is verified
+      
         if (!user.isValid) {
             return res.status(401).json({
                 success: false,
@@ -284,21 +282,21 @@ export const forgotPasswordisEmailExist = async (req, res) => {
             });
         }
 
-        // Generate reset token
+        
         const resetToken = jwt.sign(
             { id: user._id },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: "15m" }
         );
 
-        // Update user with reset token
+       
         user.resetToken = resetToken;
         await user.save();
 
-        // Send reset password email
+        
         await sendResetPasswordRequest(email, resetToken);
 
-        // Return success response
+       
         return res
             .status(200)
             .json({
@@ -322,24 +320,24 @@ export const resetPassword = async (req, res) => {
         const { newPassword } = req.body;
         const { token } = req.params;
         console.log(newPassword);
-        // Validate required fields
+        
         if (!token || !newPassword) {
             return res.status(400).json({ success: false, message: "Token and new password are required" });
         }
 
-        // Find user by reset token
+        
         const user = await User.findOne({ resetToken: token });
         if (!user) {
             return res.status(404).json({ success: false, message: "Invalid or expired token" });
         }
 
 
-        // Update user password and clear reset token
+        
         user.password = newPassword;
         user.resetToken = undefined;
         await user.save();
 
-        // Return success response
+       
         return res.status(200).json({ success: true, message: "Password reset successfully" });
     } catch (err) {
         console.log(err, 'error')
@@ -397,11 +395,11 @@ export const forgotPassword = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
     try {
-        // Clear cookies
+        
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
 
-        // Return success response
+        
         return res
             .status(200)
             .json({ success: true, message: "Logged out successfully" });
@@ -428,13 +426,13 @@ export const refreshToken = async (req, res) => {
         }
 
         try {
-            // Verify refresh token
+            
             const decodedToken = jwt.verify(
                 incomingRefreshToken,
                 process.env.REFRESH_TOKEN_SECRET
             );
 
-            // Find user
+            
             const user = await User.findById(decodedToken._id);
             if (!user) {
                 return res
@@ -442,7 +440,7 @@ export const refreshToken = async (req, res) => {
                     .json({ success: false, message: "Invalid refresh token" });
             }
 
-            // Check if refresh token matches
+           
             if (user.refreshToken !== incomingRefreshToken) {
                 return res
                     .status(401)
@@ -452,7 +450,7 @@ export const refreshToken = async (req, res) => {
                     });
             }
 
-            // Generate new tokens
+            
             const accessToken = jwt.sign(
                 { id: user._id },
                 process.env.ACCESS_TOKEN_SECRET,
@@ -464,25 +462,25 @@ export const refreshToken = async (req, res) => {
                 { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
             );
 
-            // Update user with new tokens
+            
             user.accessToken = accessToken;
             user.refreshToken = refreshToken;
             await user.save();
 
-            // Set cookies
+            
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                maxAge: 15 * 60 * 1000, // 15 minutes
+                maxAge: 15 * 60 * 1000, 
             });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: 7 * 24 * 60 * 60 * 1000, 
             });
 
-            // Return success response
+            
             return res.status(200).json({
                 success: true,
                 accessToken,

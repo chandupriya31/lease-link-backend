@@ -3,12 +3,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// Configure multer for local file storage
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = 'uploads/proofs';
 
-        // Create directory if it doesn't exist
+        
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -58,7 +58,6 @@ export const createAddress = async (req, res) => {
 
         const proof_document = req.file.path;
 
-        // Check if all required fields are provided
         if (!user || !name || !email || !phone || !address || !city ||
             !state || !zipcode || !proof_type || !proof_id) {
             return res.status(400).json({ message: "All fields are required" });
@@ -136,7 +135,7 @@ export const getAddressById = async (req, res) => {
     try {
         const { user_id } = req.params;
         console.log("user_id", user_id);
-        // Simple find by ID without authentication check
+        
         const addresses = await Address.find({ user: user_id });
         console.log("addresses", addresses);
         if (!addresses || addresses.length === 0) {
@@ -150,7 +149,7 @@ export const getAddressById = async (req, res) => {
     }
 };
 
-// Simple route to get all addresses without authentication
+
 export const getAllAddresses = async (req, res) => {
     try {
         const addresses = await Address.find({});
